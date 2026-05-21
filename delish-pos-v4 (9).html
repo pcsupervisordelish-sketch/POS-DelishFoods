@@ -1,0 +1,2420 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Delish Foods POS</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Light theme — ขาว+เขียว */
+  --bg:#f0f4f0;
+  --surface:#ffffff;
+  --surface2:#f5f8f5;
+  --surface3:#e8f0e8;
+  --border:#d0dcd0;
+  --border2:#e0e8e0;
+  --green:#1a7a3c;
+  --green-l:#e8f5ee;
+  --green-m:#b8dfc8;
+  --green-dk:#145f2f;
+  --green-btn:#22a050;
+  --yellow:#b07800;
+  --yellow-l:#fff8e0;
+  --yellow-m:#ffe08a;
+  --red:#c0392b;
+  --red-l:#fdecea;
+  --blue:#1a5fa0;
+  --blue-l:#e8f0fa;
+  --orange:#c05000;
+  --orange-l:#fff0e8;
+  --text:#1a2a1a;
+  --text2:#3a5a3a;
+  --muted:#6a8a6a;
+  --dim:#9aaa9a;
+  --font:'Sarabun',sans-serif;
+  --mono:'Courier New',monospace;
+  --r:10px;--r2:6px;--r3:4px;
+  --sh:0 2px 8px rgba(0,60,20,.10);
+  --sh2:0 4px 20px rgba(0,60,20,.14);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--text);font-size:15px;overflow:hidden}
+
+/* ── SCREENS ── */
+.screen{display:none;width:100vw;height:100vh}
+.screen.on{display:flex}
+
+/* ══════════ LOGIN ══════════ */
+#s-login{
+  align-items:center;justify-content:center;flex-direction:column;gap:24px;
+  background:linear-gradient(145deg,#e8f5ee 0%,#f0f4f0 60%,#e0ecf0 100%);
+  position:relative;
+}
+.login-brand{text-align:center}
+.login-brand .b1{font-size:28px;font-weight:800;color:var(--green);letter-spacing:-.5px}
+.login-brand .b2{font-size:13px;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-top:2px}
+
+.login-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:16px;
+  padding:30px;width:360px;display:flex;flex-direction:column;gap:16px;
+  box-shadow:var(--sh2)
+}
+.login-card h2{font-size:17px;font-weight:700;color:var(--text)}
+.lbl{font-size:13px;color:var(--muted);font-weight:600;margin-bottom:5px;display:block}
+.field{display:flex;flex-direction:column}
+
+input[type=password],input[type=text],input[type=number],select{
+  padding:10px 13px;background:var(--surface2);border:1.5px solid var(--border);
+  border-radius:var(--r);color:var(--text);font-family:var(--font);font-size:15px;
+  outline:none;transition:border-color .18s;width:100%
+}
+input:focus,select:focus{border-color:var(--green);background:#fff}
+select option{background:#fff}
+
+.btn-green{
+  width:100%;padding:11px;background:var(--green-btn);color:#fff;border:none;
+  border-radius:var(--r);font-family:var(--font);font-size:15px;font-weight:700;
+  cursor:pointer;transition:all .18s;letter-spacing:.3px
+}
+.btn-green:hover{background:var(--green-dk);transform:translateY(-1px)}
+.btn-green:active{transform:none}
+.btn-green:disabled{opacity:.4;cursor:default;transform:none}
+
+.err-box{background:var(--red-l);border:1px solid #f5b5b0;border-radius:var(--r);
+  padding:9px 13px;color:var(--red);font-size:14px;display:none}
+
+/* Supervisor gear */
+#sup-gear{
+  position:fixed;bottom:14px;right:14px;width:38px;height:38px;border-radius:50%;
+  background:var(--surface);border:1.5px solid var(--border);color:var(--muted);
+  font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  box-shadow:var(--sh);transition:all .18s;z-index:10
+}
+#sup-gear:hover{border-color:var(--green);color:var(--green)}
+#sup-panel{
+  position:fixed;bottom:60px;right:14px;background:var(--surface);
+  border:1.5px solid var(--border);border-radius:14px;padding:20px;width:280px;
+  z-index:20;display:none;box-shadow:var(--sh2)
+}
+#sup-panel h3{font-size:15px;font-weight:700;margin-bottom:14px}
+
+/* ══════════ APP ══════════ */
+#app{display:none;width:100vw;height:100vh;flex-direction:column;background:var(--bg)}
+
+/* Loading screen */
+#s-loading{
+  position:fixed;inset:0;z-index:999;
+  background:linear-gradient(145deg,#e8f5ee 0%,#f0f4f0 60%,#e0ecf0 100%);
+  display:none;flex-direction:column;align-items:center;justify-content:center;gap:20px
+}
+.loading-logo{font-size:24px;font-weight:800;color:var(--green);text-align:center}
+.loading-sub{font-size:13px;color:var(--muted);letter-spacing:2px;text-transform:uppercase}
+.loading-bar-wrap{width:220px;height:6px;background:var(--border);border-radius:6px;overflow:hidden}
+.loading-bar{
+  height:100%;width:0%;background:var(--green-btn);border-radius:6px;
+  transition:width .3s ease;
+}
+.loading-msg{font-size:14px;color:var(--muted);font-weight:600;min-height:20px;text-align:center}
+.loading-spinner{
+  width:36px;height:36px;border:3px solid var(--green-m);
+  border-top-color:var(--green-btn);border-radius:50%;
+  animation:spin .8s linear infinite
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Topbar */
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 18px;height:52px;background:var(--green);
+  flex-shrink:0;box-shadow:0 2px 8px rgba(0,80,30,.2)
+}
+.tb-brand{font-size:17px;font-weight:800;color:#fff;letter-spacing:-.3px}
+.tb-sep{width:1.5px;height:20px;background:rgba(255,255,255,.35);margin:0 12px}
+.branch-badge{
+  padding:3px 10px;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);
+  border-radius:20px;color:#fff;font-size:12px;font-weight:700
+}
+.tb-right{display:flex;align-items:center;gap:10px}
+.clock{font-family:var(--mono);font-size:13px;color:rgba(255,255,255,.85);
+  background:rgba(0,0,0,.15);padding:4px 10px;border-radius:var(--r2)}
+.tb-role{font-size:13px;color:rgba(255,255,255,.85)}
+.btn-logout{
+  padding:5px 13px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.4);
+  border-radius:var(--r2);color:#fff;font-family:var(--font);font-size:13px;
+  cursor:pointer;transition:all .15s;font-weight:600
+}
+.btn-logout:hover{background:rgba(255,255,255,.28)}
+
+/* Nav tabs */
+.nav-tabs{
+  display:flex;gap:0;background:var(--surface);
+  border-bottom:2px solid var(--border);flex-shrink:0;
+  padding:0 16px;box-shadow:0 1px 4px rgba(0,0,0,.06)
+}
+.nav-tab{
+  padding:11px 20px;font-size:15px;font-weight:600;color:var(--muted);cursor:pointer;
+  border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .15s;
+  background:transparent;border-left:none;border-right:none;border-top:none;
+  font-family:var(--font)
+}
+.nav-tab:hover{color:var(--text2)}
+.nav-tab.active{color:var(--green);border-bottom-color:var(--green)}
+
+/* ══════════ POS TAB ══════════ */
+#tc-pos{display:flex;flex:1;overflow:hidden;flex-direction:column}
+#pos-panels{display:flex;flex:1;overflow:hidden}
+
+/* Channel bar — compact */
+.channel-bar{
+  padding:7px 16px;background:var(--surface);border-bottom:2px solid var(--green-m);
+  flex-shrink:0;display:flex;align-items:center;gap:12px;flex-wrap:wrap
+}
+.ch-label{font-size:13px;font-weight:700;color:var(--muted);white-space:nowrap}
+.ch-btns{display:flex;gap:6px}
+.ch-btn{
+  padding:6px 16px;border-radius:20px;border:1.5px solid var(--border);
+  background:var(--surface2);color:var(--muted);font-family:var(--font);
+  font-size:14px;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap
+}
+.ch-btn:hover{border-color:var(--green);color:var(--green)}
+.ch-btn.sel-grab{background:var(--green-l);border-color:var(--green);color:var(--green-dk)}
+.ch-btn.sel-line{background:var(--yellow-l);border-color:var(--yellow);color:var(--yellow)}
+.ch-btn.sel-cash{background:var(--blue-l);border-color:var(--blue);color:var(--blue)}
+
+.ch-status{
+  font-size:13px;font-weight:600;padding:4px 12px;border-radius:20px;
+  background:var(--red-l);color:var(--red);border:1px solid #f5b5b0;white-space:nowrap
+}
+.ch-status.ok{background:var(--green-l);color:var(--green-dk);border-color:var(--green-m)}
+
+.ref-wrap{display:flex;align-items:center;gap:6px;margin-left:4px}
+.ref-label{font-size:13px;color:var(--muted);font-weight:600;white-space:nowrap}
+.ref-input{
+  padding:5px 12px;background:var(--surface2);border:1.5px solid var(--border);
+  border-radius:20px;color:var(--text);font-family:var(--font);font-size:13px;
+  outline:none;width:200px
+}
+.ref-input:focus{border-color:var(--yellow);background:#fff}
+
+/* Panel left */
+.panel-l{flex:1;display:flex;flex-direction:column;overflow:hidden;border-right:2px solid var(--border)}
+.search-bar{padding:9px 12px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface)}
+.search-wrap{
+  display:flex;align-items:center;gap:8px;background:var(--surface2);
+  border:1.5px solid var(--border);border-radius:var(--r);padding:0 12px;transition:border-color .18s
+}
+.search-wrap:focus-within{border-color:var(--green);background:#fff}
+.search-input{
+  flex:1;padding:9px 0;background:transparent;border:none;color:var(--text);
+  font-family:var(--font);font-size:15px;outline:none
+}
+.search-input::placeholder{color:var(--dim)}
+.search-cnt{font-size:12px;color:var(--dim);white-space:nowrap;font-weight:600}
+
+/* Product list */
+.prod-list{flex:1;overflow-y:auto;padding:6px;position:relative;background:var(--surface2)}
+.prod-list::-webkit-scrollbar{width:5px}
+.prod-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+
+/* Lock overlay — only over prod-list */
+.prod-locked{
+  position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:10px;
+  background:rgba(240,244,240,.92);backdrop-filter:blur(2px)
+}
+.prod-locked-icon{font-size:38px}
+.prod-locked-msg{font-size:16px;font-weight:700;color:var(--text2)}
+.prod-locked-sub{font-size:14px;color:var(--muted)}
+
+.prod-item{
+  display:flex;align-items:center;gap:10px;padding:9px 12px;
+  border-radius:var(--r);cursor:pointer;border:1.5px solid transparent;
+  transition:all .1s;margin-bottom:3px;background:var(--surface);
+  box-shadow:0 1px 3px rgba(0,0,0,.05)
+}
+.prod-item:hover{border-color:var(--green-m);background:#fff;box-shadow:var(--sh)}
+.prod-item.in-cart{background:var(--green-l);border-color:var(--green-m)}
+.prod-item.in-cart:hover{border-color:var(--green)}
+
+.pi-id{font-family:var(--mono);font-size:11px;color:var(--dim);width:64px;flex-shrink:0}
+.pi-info{flex:1;min-width:0}
+.pi-name{font-size:15px;font-weight:600;line-height:1.3;color:var(--text)}
+.pi-uom{font-size:12px;color:var(--muted);margin-top:1px}
+.pi-price{font-size:15px;font-weight:700;color:var(--green-dk);width:64px;text-align:right;flex-shrink:0}
+
+.qty-ctrl{display:flex;align-items:center;gap:5px;flex-shrink:0}
+.qty-btn{
+  width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);
+  background:var(--surface);color:var(--text2);cursor:pointer;font-size:16px;
+  display:flex;align-items:center;justify-content:center;transition:all .12s;line-height:1
+}
+.qty-btn:hover{border-color:var(--green);color:var(--green);background:var(--green-l)}
+.qty-num{font-size:15px;font-weight:700;color:var(--green-dk);width:28px;text-align:center}
+
+/* ── CART ── */
+.panel-r{width:480px;flex-shrink:0;display:flex;flex-direction:column;background:var(--surface);box-shadow:-2px 0 8px rgba(0,0,0,.06)}
+.cart-hd{
+  padding:12px 14px;border-bottom:2px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;background:var(--surface)
+}
+.cart-title{font-size:16px;font-weight:700;color:var(--text)}
+.cart-badge{
+  background:var(--green-btn);color:#fff;padding:2px 9px;
+  border-radius:20px;font-size:13px;font-weight:700
+}
+.btn-clr{font-size:13px;color:var(--muted);background:transparent;border:none;cursor:pointer;padding:4px 8px;border-radius:5px;transition:all .15s;font-family:var(--font)}
+.btn-clr:hover{color:var(--red);background:var(--red-l)}
+
+.cart-body{flex:1;overflow-y:auto;padding:6px;background:var(--surface2);position:relative}
+.cart-body::-webkit-scrollbar{width:4px}
+.cart-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+.cart-empty{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  height:100%;gap:8px;color:var(--dim);font-size:15px;padding:32px
+}
+
+.ci{
+  display:flex;align-items:flex-start;gap:8px;padding:14px 12px;
+  border-radius:var(--r2);border:1.5px solid var(--border2);background:var(--surface);
+  margin-bottom:4px;box-shadow:0 1px 3px rgba(0,0,0,.04)
+}
+.ci-info{flex:1;min-width:0}
+.ci-id{font-family:var(--mono);font-size:11px;color:var(--dim)}
+.ci-name{font-size:14px;font-weight:600;line-height:1.3;color:var(--text)}
+.ci-unit{font-size:12px;color:var(--muted);margin-top:1px}
+.ci-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0}
+.ci-qrow{display:flex;align-items:center;gap:4px}
+.cq-btn{
+  width:22px;height:22px;border-radius:50%;border:1.5px solid var(--border);
+  background:var(--surface2);color:var(--text2);cursor:pointer;font-size:14px;
+  display:flex;align-items:center;justify-content:center;transition:all .12s;line-height:1
+}
+.cq-btn:hover{border-color:var(--red);color:var(--red);background:var(--red-l)}
+.cq-btn.plus:hover{border-color:var(--green);color:var(--green);background:var(--green-l)}
+.ci-qnum{font-size:15px;font-weight:700;color:var(--green-dk);width:24px;text-align:center}
+.ci-total{font-size:15px;font-weight:700;color:var(--green-dk)}
+
+/* Cart item discount badge */
+.ci-disc-badge{
+  display:inline-flex;align-items:center;gap:3px;padding:3px 8px;
+  border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;
+  border:1.5px dashed var(--border);background:var(--surface2);color:var(--dim);
+  transition:all .15s;margin-top:3px;white-space:nowrap
+}
+.ci-disc-badge:hover{border-color:var(--orange);color:var(--orange);background:var(--orange-l)}
+.ci-disc-badge.has-disc{border-color:var(--orange);background:var(--orange-l);color:var(--orange);border-style:solid}
+.ci-disc-badge.is-free{border-color:var(--green);background:var(--green-l);color:var(--green-dk);border-style:solid}
+
+/* Discount popup — overlays on top of cart body as highlighted card */
+.ci-disc-popup{
+  position:absolute;right:8px;z-index:50;
+  background:var(--surface);border:2px solid var(--green);border-radius:var(--r);
+  padding:14px;min-width:240px;max-width:280px;
+  box-shadow:0 8px 24px rgba(0,80,30,.18);
+  animation:mup .15s ease
+}
+.ci-disc-popup-row{display:flex;align-items:center;gap:6px;margin-top:8px}
+.ci-disc-type-btn{
+  padding:5px 11px;border-radius:20px;border:1.5px solid var(--border);
+  background:var(--surface2);font-family:var(--font);font-size:12px;font-weight:700;
+  cursor:pointer;color:var(--muted);transition:all .12s;white-space:nowrap
+}
+.ci-disc-type-btn.active-disc{background:var(--orange-l);border-color:var(--orange);color:var(--orange)}
+.ci-disc-type-btn.active-free{background:var(--green-l);border-color:var(--green);color:var(--green-dk)}
+.ci-disc-input{
+  flex:1;padding:6px 10px;background:var(--surface2);border:1.5px solid var(--border);
+  border-radius:var(--r);font-family:var(--font);font-size:14px;font-weight:700;
+  outline:none;min-width:0
+}
+.ci-disc-input:focus{border-color:var(--orange);background:#fff}
+.cart-footer{border-top:2px solid var(--border);padding:12px 14px;display:flex;flex-direction:column;gap:10px;background:var(--surface)}
+
+.pay-row{display:flex;gap:6px}
+.pay-btn{
+  flex:1;padding:8px 0;border-radius:var(--r);border:1.5px solid var(--border);
+  background:var(--surface2);color:var(--muted);font-family:var(--font);
+  font-size:14px;font-weight:600;cursor:pointer;transition:all .15s
+}
+.pay-btn.sel-cash{background:var(--blue-l);border-color:var(--blue);color:var(--blue)}
+.pay-btn.sel-transfer{background:var(--green-l);border-color:var(--green);color:var(--green-dk)}
+
+.disc-row{
+  display:flex;align-items:center;gap:6px;background:var(--surface2);
+  border:1.5px solid var(--border);border-radius:var(--r);padding:7px 10px
+}
+.disc-toggle{display:flex;gap:3px;flex-shrink:0}
+.disc-type-btn{
+  padding:4px 9px;border-radius:var(--r3);border:1.5px solid var(--border);
+  background:var(--surface);color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;transition:all .12s;font-family:var(--font)
+}
+.disc-type-btn.active{background:var(--orange-l);border-color:var(--orange);color:var(--orange)}
+.disc-input{
+  flex:1;background:transparent;border:none;color:var(--text);font-family:var(--font);
+  font-size:15px;font-weight:700;outline:none;text-align:right;min-width:0
+}
+.disc-input::placeholder{color:var(--dim);font-size:13px;font-weight:400}
+.disc-sfx{font-size:14px;color:var(--muted);flex-shrink:0;font-weight:600}
+
+.total-block{
+  display:flex;justify-content:space-between;align-items:center;
+  background:var(--green-l);border:2px solid var(--green-m);
+  border-radius:var(--r);padding:10px 14px;margin:2px 0
+}
+.total-label-sm{font-size:14px;color:var(--green-dk);font-weight:700}
+.total-num{font-size:26px;font-weight:800;color:var(--green-dk)}
+.disc-applied{font-size:13px;color:var(--orange);font-weight:600}
+.total-meta{font-size:13px;color:var(--muted)}
+
+.btn-checkout{
+  width:100%;padding:13px;background:var(--green-btn);color:#fff;border:none;
+  border-radius:var(--r);font-family:var(--font);font-size:16px;font-weight:700;
+  cursor:pointer;transition:all .18s;letter-spacing:.3px
+}
+.btn-checkout:hover{background:var(--green-dk);transform:translateY(-1px)}
+.btn-checkout:disabled{opacity:.35;cursor:default;transform:none}
+
+/* ══════════ HISTORY ══════════ */
+#tc-history{flex:1;display:none;flex-direction:column;overflow:hidden}
+.tab-body{flex:1;overflow-y:auto;padding:18px}
+.tab-body::-webkit-scrollbar{width:5px}
+.tab-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+
+.stats-row{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.stat-card{
+  flex:1;min-width:120px;background:var(--surface);border:1.5px solid var(--border);
+  border-radius:var(--r);padding:13px 16px;box-shadow:var(--sh)
+}
+.stat-label{font-size:13px;color:var(--muted);font-weight:600;margin-bottom:4px}
+.stat-val{font-size:20px;font-weight:800;color:var(--text)}
+.stat-val.g{color:var(--green-dk)}
+.stat-val.o{color:var(--orange)}
+
+.filter-bar{display:flex;gap:8px;margin-bottom:14px;align-items:center;flex-wrap:wrap}
+.filter-inp{
+  padding:8px 13px;background:var(--surface);border:1.5px solid var(--border);
+  border-radius:var(--r);color:var(--text);font-family:var(--font);font-size:14px;
+  outline:none;flex:1;min-width:180px
+}
+.filter-inp:focus{border-color:var(--green);background:#fff}
+.filter-sel{
+  padding:8px 13px;background:var(--surface);border:1.5px solid var(--border);
+  border-radius:var(--r);color:var(--text);font-family:var(--font);font-size:14px;outline:none
+}
+
+.history-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
+.hc{
+  background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);
+  padding:13px 15px;cursor:pointer;transition:all .15s;box-shadow:var(--sh)
+}
+.hc:hover{border-color:var(--green);box-shadow:var(--sh2)}
+.hc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.hc-id{font-family:var(--mono);font-size:11px;color:var(--dim);font-weight:600}
+.hc-time{font-size:12px;color:var(--muted);font-weight:600;text-align:right}
+.hc-branch{font-size:11px;color:var(--dim)}
+.hc-amt{font-size:20px;font-weight:800;color:var(--green-dk)}
+.hc-disc{font-size:13px;color:var(--orange);font-weight:600}
+.hc-count{font-size:13px;color:var(--muted);margin-top:4px}
+
+.ch-badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:12px;font-weight:700}
+.ch-grab{background:var(--green-l);color:var(--green-dk);border:1px solid var(--green-m)}
+.ch-line{background:var(--yellow-l);color:var(--yellow);border:1px solid var(--yellow-m)}
+.ch-cash{background:var(--blue-l);color:var(--blue);border:1px solid #a0c0e0}
+
+/* ══════════ ADMIN ══════════ */
+#tc-admin{flex:1;display:none;flex-direction:column;overflow:hidden}
+.admin-hd-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+.admin-note{font-size:13px;color:var(--muted);font-weight:600}
+.sync-indicator{
+  font-size:13px;font-weight:700;padding:5px 12px;border-radius:20px;
+  background:var(--green-l);color:var(--green-dk);border:1px solid var(--green-m)
+}
+.sync-indicator.saving{background:var(--yellow-l);color:var(--yellow);border-color:var(--yellow-m)}
+.sync-indicator.error{background:var(--red-l);color:var(--red);border-color:#f5b5b0}
+
+.admin-table-wrap{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh)}
+table{width:100%;border-collapse:collapse}
+th{
+  text-align:left;padding:10px 13px;font-size:13px;color:var(--muted);
+  font-weight:700;letter-spacing:.5px;text-transform:uppercase;
+  border-bottom:2px solid var(--border);background:var(--surface3)
+}
+td{padding:9px 13px;font-size:14px;border-bottom:1px solid var(--border2);font-weight:500}
+tr:last-child td{border:none}
+tr:hover td{background:var(--green-l)}
+.td-id{font-family:var(--mono);font-size:11px;color:var(--dim);font-weight:700}
+.td-price{font-weight:700;color:var(--green-dk)}
+
+.uom-sel{
+  padding:5px 7px;background:var(--surface2);border:1.5px solid var(--border);
+  border-radius:var(--r3);color:var(--text);font-family:var(--font);font-size:13px;outline:none;font-weight:600
+}
+.uom-sel:focus{border-color:var(--green)}
+.uom-qty{
+  width:54px;padding:5px 7px;background:var(--surface2);border:1.5px solid var(--border);
+  border-radius:var(--r3);color:var(--text);font-family:var(--mono);font-size:13px;outline:none;font-weight:600
+}
+.uom-qty:focus{border-color:var(--green)}
+.price-inp2{
+  width:82px;padding:5px 8px;background:var(--surface2);border:1.5px solid var(--border);
+  border-radius:var(--r3);color:var(--text);font-family:var(--mono);font-size:14px;
+  outline:none;font-weight:700
+}
+.price-inp2:focus{border-color:var(--green)}
+
+.btn-save{
+  padding:5px 12px;background:var(--green-l);border:1.5px solid var(--green-m);
+  border-radius:var(--r3);color:var(--green-dk);font-family:var(--font);
+  font-size:13px;font-weight:700;cursor:pointer;transition:all .15s
+}
+.btn-save:hover{background:var(--green-btn);color:#fff;border-color:var(--green-btn)}
+
+/* ══════════ MODAL ══════════ */
+.overlay{
+  position:fixed;inset:0;background:rgba(0,40,10,.4);backdrop-filter:blur(3px);
+  z-index:100;display:flex;align-items:center;justify-content:center
+}
+.modal{
+  background:var(--surface);border:1.5px solid var(--border);border-radius:14px;
+  width:640px;max-height:88vh;display:flex;flex-direction:column;
+  box-shadow:0 20px 60px rgba(0,60,20,.2);animation:mup .2s ease
+}
+.modal.sm{width:420px}
+@keyframes mup{from{transform:translateY(14px);opacity:0}to{transform:none;opacity:1}}
+.modal-hd{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 22px;border-bottom:2px solid var(--border)
+}
+.modal-title{font-size:16px;font-weight:800;color:var(--text)}
+.modal-x{
+  width:30px;height:30px;border-radius:50%;border:1.5px solid var(--border);
+  background:var(--surface2);color:var(--muted);cursor:pointer;font-size:17px;
+  display:flex;align-items:center;justify-content:center;transition:all .15s
+}
+.modal-x:hover{border-color:var(--red);color:var(--red);background:var(--red-l)}
+.modal-body{flex:1;overflow-y:auto;padding:20px 22px}
+.modal-body::-webkit-scrollbar{width:5px}
+.modal-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+.modal-ft{
+  padding:14px 22px;border-top:2px solid var(--border);
+  display:flex;gap:10px;justify-content:flex-end
+}
+
+.btn-primary{
+  padding:10px 24px;background:var(--green-btn);color:#fff;border:none;
+  border-radius:var(--r);font-family:var(--font);font-size:15px;font-weight:700;
+  cursor:pointer;transition:all .18s
+}
+.btn-primary:hover{background:var(--green-dk)}
+.btn-ghost{
+  padding:10px 18px;background:var(--surface2);border:1.5px solid var(--border);
+  border-radius:var(--r);color:var(--muted);font-family:var(--font);
+  font-size:15px;cursor:pointer;transition:all .15s;font-weight:600
+}
+.btn-ghost:hover{border-color:var(--text2);color:var(--text)}
+
+/* Receipt in modal */
+.receipt{font-size:15px}
+.rec-channel-row{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.ri{display:flex;justify-content:space-between;align-items:flex-start;padding:7px 0;border-bottom:1px solid var(--border2);gap:8px}
+.ri:last-child{border:none}
+.ri-name{flex:1;font-size:14px;font-weight:600}
+.ri-code{font-size:11px;color:var(--dim);font-family:var(--mono)}
+.ri-qty{font-size:14px;color:var(--muted);font-weight:600;white-space:nowrap}
+.ri-sub{font-size:15px;font-weight:700;color:var(--green-dk);white-space:nowrap}
+.rec-line{border-top:2px solid var(--border);margin:10px 0}
+.rec-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:14px}
+.rec-total-num{font-size:22px;font-weight:800;color:var(--green-dk)}
+
+/* SAP */
+.sap-wrap{margin-top:14px;background:var(--blue-l);border:1.5px solid #a0c0e0;border-radius:var(--r);overflow:hidden}
+.sap-hd{display:flex;align-items:center;justify-content:space-between;padding:9px 13px;border-bottom:1px solid #a0c0e0}
+.sap-label{font-size:12px;font-weight:800;color:var(--blue);letter-spacing:.5px;text-transform:uppercase}
+.sap-note{font-size:11px;color:var(--muted);margin-top:1px}
+.btn-copy{
+  padding:5px 13px;background:var(--blue);color:#fff;border:none;border-radius:var(--r2);
+  font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;white-space:nowrap
+}
+.btn-copy:hover{filter:brightness(1.1)}
+.btn-copy.ok{background:var(--green-btn);color:#fff}
+.sap-textarea{
+  width:100%;padding:10px 13px;font-family:var(--mono);font-size:12px;color:var(--text2);
+  background:var(--surface);border:none;outline:none;resize:none;
+  line-height:1.8;min-height:80px;max-height:160px;overflow-y:auto;
+  white-space:pre;cursor:text;display:block
+}
+.sap-select-hint{
+  font-size:11px;color:var(--blue);padding:4px 13px 8px;font-weight:600
+}
+
+.hc-cancelled{
+  opacity:.6;border-color:#e0b0b0 !important;background:var(--red-l) !important;
+}
+.hc-cancelled:hover{border-color:var(--red) !important;opacity:.8}
+.cancelled-badge{
+  display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;
+  background:var(--red-l);color:var(--red);border:1px solid #f5b5b0;margin-left:6px
+}
+.btn-cancel-order{
+  flex:1;padding:9px 0;background:var(--red-l);border:1.5px solid #f5b5b0;
+  border-radius:var(--r);color:var(--red);font-family:var(--font);font-size:14px;
+  font-weight:700;cursor:pointer;transition:all .15s;text-align:center
+}
+.btn-cancel-order:hover{background:var(--red);color:#fff;border-color:var(--red)}
+
+/* Context menu (right-click on history card) */
+.ctx-menu{
+  position:fixed;z-index:9000;background:var(--surface);
+  border:1.5px solid var(--border);border-radius:var(--r);
+  box-shadow:var(--sh2);min-width:200px;overflow:hidden;display:none;
+  animation:mup .15s ease
+}
+.ctx-item{
+  display:flex;align-items:center;gap:10px;padding:12px 16px;
+  font-size:14px;font-weight:600;cursor:pointer;color:var(--text);
+  transition:all .12s;border-bottom:1px solid var(--border2);font-family:var(--font)
+}
+.ctx-item:last-child{border:none}
+.ctx-item:hover{background:var(--green-l);color:var(--green-dk)}
+.ctx-item.danger{color:var(--red)}
+.ctx-item.danger:hover{background:var(--red-l);color:var(--red)}
+.ctx-icon{font-size:16px;width:22px;text-align:center}
+
+/* History sub-tabs (active / cancelled) */
+.hist-tabs{display:flex;gap:6px;margin-bottom:14px}
+.hist-tab-btn{
+  padding:7px 18px;border-radius:20px;font-size:14px;font-weight:700;
+  cursor:pointer;border:1.5px solid var(--border);background:var(--surface);
+  color:var(--muted);font-family:var(--font);transition:all .15s
+}
+.hist-tab-btn.active{background:var(--green-l);border-color:var(--green);color:var(--green-dk)}
+.hist-tab-btn.ctab.active{background:var(--red-l);border-color:var(--red);color:var(--red)}
+.btn-print{
+  flex:1;padding:9px 0;background:var(--surface2);border:1.5px solid var(--border);
+  border-radius:var(--r);color:var(--text2);font-family:var(--font);font-size:14px;
+  font-weight:700;cursor:pointer;transition:all .15s;text-align:center
+}
+.btn-print:hover{background:var(--green-l);border-color:var(--green);color:var(--green-dk)}
+
+/* Toast */
+.toast{
+  position:fixed;bottom:20px;right:20px;padding:11px 18px;
+  background:var(--green-dk);border-radius:var(--r);color:#fff;
+  font-size:14px;font-weight:600;z-index:9999;
+  animation:tin .2s ease;box-shadow:var(--sh2)
+}
+@keyframes tin{from{transform:translateX(14px);opacity:0}to{transform:none;opacity:1}}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN ══ -->
+<div id="s-login" class="screen on">
+  <div class="login-brand">
+    <div class="b1">🌿 Delish Foods POS</div>
+    <div class="b2">Point of Sale System</div>
+  </div>
+  <div class="login-card">
+    <h2>เข้าสู่ระบบ PC</h2>
+    <div class="field">
+      <label class="lbl">สาขา</label>
+      <select id="pc-branch">
+        <option value="WH10|อ่อนนุช">อ่อนนุช (WH10)</option>
+        <option value="WH04|รามคำแหง">รามคำแหง (WH04)</option>
+        <option value="WH01|สำนักงานใหญ่">สำนักงานใหญ่ (WH01)</option>
+      </select>
+    </div>
+    <div class="field">
+      <label class="lbl">รหัสผ่าน</label>
+      <input type="password" id="pc-pw" placeholder="รหัส PC" onkeydown="if(event.key==='Enter')login('PC')">
+    </div>
+    <div class="err-box" id="pc-err">รหัสผ่านไม่ถูกต้อง</div>
+    <button class="btn-green" onclick="login('PC')">เข้าสู่ระบบ</button>
+  </div>
+  <button id="sup-gear" onclick="toggleSupPanel()" title="Supervisor Login">⚙️</button>
+  <div id="sup-panel">
+    <h3>🔐 Supervisor</h3>
+    <div class="field" style="margin-bottom:10px">
+      <label class="lbl">รหัสผ่าน Supervisor</label>
+      <input type="password" id="sup-pw" placeholder="รหัสผ่าน" onkeydown="if(event.key==='Enter')login('Supervisor')">
+    </div>
+    <div class="err-box" id="sup-err" style="margin-bottom:10px">รหัสผ่านไม่ถูกต้อง</div>
+    <button class="btn-green" onclick="login('Supervisor')">เข้าสู่ระบบ</button>
+  </div>
+</div>
+
+<!-- ══ LOADING ══ -->
+<div id="s-loading">
+  <div class="loading-spinner"></div>
+  <div class="loading-logo">🌿 Delish Foods POS</div>
+  <div class="loading-bar-wrap">
+    <div class="loading-bar" id="loading-bar"></div>
+  </div>
+  <div class="loading-msg" id="loading-msg">กำลังเชื่อมต่อ...</div>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="app">
+  <div class="topbar">
+    <div style="display:flex;align-items:center">
+      <span class="tb-brand">🌿 Delish Foods POS</span>
+      <div class="tb-sep"></div>
+      <span class="branch-badge" id="ui-branch">-</span>
+    </div>
+    <div class="tb-right">
+      <div class="clock" id="ui-clock">00:00:00</div>
+      <span class="tb-role" id="ui-role">-</span>
+      <button class="btn-logout" onclick="logout()">ออกจากระบบ</button>
+    </div>
+  </div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" id="tab-pos" onclick="goTab('pos')">🛒 ขายสินค้า</button>
+    <button class="nav-tab" id="tab-history" onclick="goTab('history')">📋 ประวัติออเดอร์</button>
+    <button class="nav-tab" id="tab-admin" onclick="goTab('admin')" style="display:none">⚙️ จัดการสินค้า</button>
+  </div>
+
+  <!-- ── POS ── -->
+  <div id="tc-pos">
+    <!-- Channel bar — compact, always visible -->
+    <div class="channel-bar">
+      <span class="ch-label">ช่องทาง:</span>
+      <div class="ch-btns">
+        <button class="ch-btn" id="ch-grab" onclick="setChannel('Grab')">🟢 Grab</button>
+        <button class="ch-btn" id="ch-line" onclick="setChannel('Lineman')">🟡 Line Man</button>
+        <button class="ch-btn" id="ch-cash" onclick="setChannel('Cash')">🔵 Walk-in</button>
+      </div>
+      <span class="ch-status" id="ch-status">⚠️ ยังไม่ได้เลือกช่องทาง</span>
+      <div class="ref-wrap" id="ref-wrap" style="display:none">
+        <span class="ref-label" id="ref-label">เลขออเดอร์:</span>
+        <input class="ref-input" id="order-ref" placeholder="ใส่เลขออเดอร์ก่อน" oninput="checkRefLock()">
+      </div>
+    </div>
+
+    <div id="pos-panels">
+      <!-- Left: Products -->
+      <div class="panel-l">
+        <div class="search-bar">
+          <div class="search-wrap">
+            <span style="color:var(--dim);font-size:16px">🔍</span>
+            <input class="search-input" id="srch" placeholder="ค้นหาชื่อสินค้า หรือรหัส เช่น FG01002..." oninput="renderProds()">
+            <span class="search-cnt" id="srch-cnt">0 รายการ</span>
+          </div>
+        </div>
+        <div class="prod-list" id="prod-list">
+          <div id="prod-locked" class="prod-locked">
+            <div class="prod-locked-icon">🔒</div>
+            <div class="prod-locked-msg">เลือกช่องทางออเดอร์ก่อน</div>
+            <div class="prod-locked-sub">Grab / Line Man / Walk-in</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Cart -->
+      <div class="panel-r">
+        <div class="cart-hd">
+          <span class="cart-title">ตะกร้า</span>
+          <span class="cart-badge" id="cart-badge">0</span>
+          <button class="btn-clr" onclick="clearCart()">ล้างทั้งหมด</button>
+        </div>
+        <div class="cart-body" id="cart-body">
+          <div class="cart-empty">
+            <div style="font-size:36px;opacity:.15">🛒</div>
+            <div>ยังไม่มีสินค้าในตะกร้า</div>
+          </div>
+        </div>
+        <div class="cart-footer">
+          <div>
+            <div class="lbl" style="margin-bottom:5px">ช่องทางชำระเงิน</div>
+            <div class="pay-row">
+              <button class="pay-btn sel-cash" id="pay-cash" onclick="setPay('cash')">💵 เงินสด</button>
+              <button class="pay-btn" id="pay-transfer" onclick="setPay('transfer')">📲 โอน / QR</button>
+            </div>
+          </div>
+          <div>
+            <div class="lbl" style="margin-bottom:5px">ส่วนลด</div>
+            <div class="disc-row">
+              <div class="disc-toggle">
+                <button class="disc-type-btn active" id="disc-b" onclick="setDiscType('baht')">฿</button>
+                <button class="disc-type-btn" id="disc-p" onclick="setDiscType('pct')">%</button>
+              </div>
+              <input class="disc-input" id="disc-val" type="number" min="0" placeholder="ใส่ส่วนลด" oninput="renderCartFt()">
+              <span class="disc-sfx" id="disc-sfx">฿</span>
+            </div>
+          </div>
+          <div class="total-block">
+            <div>
+              <div class="total-label-sm">ยอดรวมสุทธิ</div>
+              <div class="disc-applied" id="disc-applied" style="display:none"></div>
+              <div class="total-meta" id="cart-meta">0 รายการ</div>
+            </div>
+            <div class="total-num" id="cart-total">฿0</div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn-ghost" onclick="refreshSKU()" style="flex-shrink:0;padding:12px 10px;font-size:13px;font-weight:700" title="โหลดราคาสินค้าล่าสุดจาก Sheet">🔄 ราคาล่าสุด</button>
+            <button class="btn-checkout" id="btn-checkout" disabled onclick="openCheckout()">สรุปออเดอร์ →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── HISTORY ── -->
+  <div id="tc-history">
+    <div class="tab-body">
+      <div id="stats-row" class="stats-row" style="display:none">
+        <div class="stat-card"><div class="stat-label">ออเดอร์ทั้งหมด</div><div class="stat-val" id="st-orders">-</div></div>
+        <div class="stat-card"><div class="stat-label">ยอดขายรวม</div><div class="stat-val g" id="st-total">-</div></div>
+        <div class="stat-card"><div class="stat-label">ส่วนลดรวม</div><div class="stat-val o" id="st-disc">-</div></div>
+        <div class="stat-card"><div class="stat-label">ยอดเฉลี่ย/ออเดอร์</div><div class="stat-val g" id="st-avg">-</div></div>
+      </div>
+      <!-- Sub-tabs -->
+      <div class="hist-tabs">
+        <button class="hist-tab-btn active" id="htab-active" onclick="setHistTab('active')">✅ ออเดอร์ปกติ</button>
+        <button class="hist-tab-btn ctab" id="htab-cancelled" onclick="setHistTab('cancelled')">❌ ยกเลิกแล้ว</button>
+      </div>
+      <div class="filter-bar">
+        <input class="filter-inp" id="hist-srch" placeholder="ค้นหา เลขออเดอร์, วันที่, ยอดเงิน..." oninput="renderHistory()">
+        <select class="filter-sel" id="hist-branch" onchange="renderHistory()">
+          <option value="">ทุกสาขา</option>
+          <option value="อ่อนนุช">อ่อนนุช</option>
+          <option value="รามคำแหง">รามคำแหง</option>
+          <option value="สำนักงานใหญ่">สำนักงานใหญ่</option>
+        </select>
+        <select class="filter-sel" id="hist-ch" onchange="renderHistory()">
+          <option value="">ทุกช่องทาง</option>
+          <option value="Grab">Grab</option>
+          <option value="Lineman">Line Man</option>
+          <option value="Cash">Walk-in</option>
+        </select>
+      </div>
+      <div class="history-grid" id="hist-grid"></div>
+      <div id="hist-empty" style="display:none;text-align:center;padding:60px;color:var(--dim);font-size:16px">ยังไม่มีออเดอร์</div>
+    </div>
+  </div>
+
+  <!-- ── ADMIN ── -->
+  <div id="tc-admin">
+    <div class="tab-body">
+      <div class="admin-hd-row">
+        <div>
+          <div style="font-size:17px;font-weight:800;margin-bottom:2px">จัดการรายการสินค้า</div>
+          <div class="admin-note">แก้ไขแล้วกด "บันทึก" รายชิ้น หรือกด "บันทึกทั้งหมด" — PC ทุกสาขาต้อง Refresh เว็บหลังบันทึก</div>
+        </div>
+        <span class="sync-indicator" id="sync-status">✅ ข้อมูลล่าสุด</span>
+      </div>
+      <div class="filter-bar">
+        <input class="filter-inp" id="adm-srch" placeholder="ค้นหาสินค้า..." oninput="renderAdmin()">
+        <button class="btn-green" onclick="openAddProduct()" style="white-space:nowrap;padding:8px 16px;font-size:14px;width:auto">+ เพิ่มสินค้า</button>
+        <button class="btn-primary" onclick="saveAllProducts()" style="white-space:nowrap;padding:8px 16px;font-size:14px">💾 บันทึกทั้งหมด</button>
+      </div>
+      <div class="admin-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>รหัส</th>
+              <th>ชื่อสินค้า</th>
+              <th>Packsize</th>
+              <th>ปริมาณ</th>
+              <th>หน่วย</th>
+              <th>ราคาปลีก (฿)<br><span style="font-size:10px;font-weight:400;color:rgba(255,255,255,.7)">Grab/Line Man</span></th>
+              <th>ราคาส่ง (฿)<br><span style="font-size:10px;font-weight:400;color:rgba(255,255,255,.7)">Walk-in</span></th>
+              <th>บันทึก</th>
+              <th>ลบ</th>
+            </tr>
+          </thead>
+          <tbody id="adm-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CONTEXT MENU -->
+<div class="ctx-menu" id="ctx-menu">
+  <div class="ctx-item" onclick="ctxCopy()"><span class="ctx-icon">📋</span> คลุมดำ+Copy SAP</div>
+  <div class="ctx-item" onclick="ctxPrint()"><span class="ctx-icon">🖨️</span> พิมพ์ใบเสร็จ</div>
+  <div class="ctx-item danger" id="ctx-cancel-btn" onclick="ctxCancel()"><span class="ctx-icon">❌</span> ยกเลิกออเดอร์</div>
+</div>
+
+<!-- ADD PRODUCT MODAL -->
+<div class="overlay" id="modal-add-product" style="display:none" onclick="if(event.target===this)closeM('modal-add-product')">
+  <div class="modal sm">
+    <div class="modal-hd">
+      <span class="modal-title">➕ เพิ่มสินค้าใหม่</span>
+      <button class="modal-x" onclick="closeM('modal-add-product')">✕</button>
+    </div>
+    <div class="modal-body" style="display:flex;flex-direction:column;gap:14px">
+      <div class="field">
+        <label class="lbl">รหัสสินค้า (Item No.) *</label>
+        <input type="text" id="new-id" placeholder="เช่น FG99001" style="text-transform:uppercase">
+      </div>
+      <div class="field">
+        <label class="lbl">ชื่อสินค้า *</label>
+        <input type="text" id="new-name" placeholder="ชื่อภาษาไทย / English">
+      </div>
+      <div style="display:flex;gap:8px">
+        <div class="field" style="flex:1">
+          <label class="lbl">Packsize</label>
+          <select id="new-ps">
+            ${['PACK','PCE','SET','BOTTLE','JAR','ซอง'].map(x=>`<option>${x}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field" style="width:80px">
+          <label class="lbl">ปริมาณ</label>
+          <input type="text" id="new-qty" placeholder="-">
+        </div>
+        <div class="field" style="flex:1">
+          <label class="lbl">หน่วย</label>
+          <select id="new-unit">
+            ${['','g','kg','pc','ml','l'].map(x=>`<option>${x}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <div class="field" style="flex:1">
+          <label class="lbl">ราคาปลีก (฿) * <span style="font-size:11px;color:var(--muted)">Grab/Line Man</span></label>
+          <input type="number" id="new-price" placeholder="0" min="0">
+        </div>
+        <div class="field" style="flex:1">
+          <label class="lbl">ราคาส่ง (฿) <span style="font-size:11px;color:var(--muted)">Walk-in</span></label>
+          <input type="number" id="new-price-ws" placeholder="ถ้าว่างใช้ราคาปลีก" min="0">
+        </div>
+      </div>
+      <div class="err-box" id="add-err">กรุณากรอกข้อมูลให้ครบ</div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn-ghost" onclick="closeM('modal-add-product')">ยกเลิก</button>
+      <button class="btn-primary" onclick="confirmAddProduct()">➕ เพิ่มสินค้า</button>
+    </div>
+  </div>
+</div>
+
+<!-- REFRESH REMINDER MODAL -->
+<div class="overlay" id="modal-refresh" style="display:none">
+  <div class="modal sm">
+    <div class="modal-hd">
+      <span class="modal-title" style="color:var(--green-dk)">✅ บันทึกสำเร็จ</span>
+      <button class="modal-x" onclick="closeM('modal-refresh')">✕</button>
+    </div>
+    <div class="modal-body" style="text-align:center;padding:20px">
+      <div style="font-size:36px;margin-bottom:12px">🔄</div>
+      <div style="font-size:16px;font-weight:700;margin-bottom:8px">บันทึกลง Google Sheet แล้ว</div>
+      <div style="font-size:14px;color:var(--muted);line-height:1.8">
+        <b style="color:var(--red)">สำคัญ:</b> แจ้ง PC ทุกสาขาให้<br>
+        <b>ปิด-เปิดเว็บใหม่ (Refresh)</b><br>
+        เพื่อโหลดข้อมูลสินค้าล่าสุด
+      </div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn-primary" onclick="closeM('modal-refresh')">รับทราบ</button>
+    </div>
+  </div>
+</div>
+<div class="overlay" id="modal-checkout" style="display:none">
+  <div class="modal">
+    <div class="modal-hd">
+      <span class="modal-title">ตรวจสอบออเดอร์ก่อนยืนยัน</span>
+      <button class="modal-x" id="checkout-close-btn" onclick="closeM('modal-checkout')">✕</button>
+    </div>
+    <div class="modal-body" id="checkout-body"></div>
+    <div class="modal-ft">
+      <button class="btn-ghost" onclick="closeM('modal-checkout')">← แก้ไข</button>
+      <button class="btn-primary" onclick="confirmOrder()">✅ ยืนยันออเดอร์</button>
+    </div>
+  </div>
+</div>
+
+<!-- DONE MODAL -->
+<div class="overlay" id="modal-done" style="display:none">
+  <div class="modal">
+    <div class="modal-hd">
+      <span class="modal-title" style="color:var(--green-dk)">✅ ออเดอร์สำเร็จ!</span>
+      <button class="modal-x" onclick="closeM('modal-done')">✕</button>
+    </div>
+    <div class="modal-body" id="done-body"></div>
+    <div class="modal-ft">
+      <button class="btn-primary" onclick="closeM('modal-done')">ปิด / ออเดอร์ใหม่</button>
+    </div>
+  </div>
+</div>
+
+<!-- CANCEL ORDER MODAL -->
+<div class="overlay" id="modal-cancel" style="display:none" onclick="if(event.target===this)closeM('modal-cancel')">
+  <div class="modal sm">
+    <div class="modal-hd">
+      <span class="modal-title" style="color:var(--red)">❌ ยกเลิกออเดอร์</span>
+      <button class="modal-x" onclick="closeM('modal-cancel')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:15px;margin-bottom:16px;color:var(--text2)">
+        ออเดอร์ <b id="cancel-order-id"></b> จะถูกยกเลิก<br>
+        <span style="font-size:13px;color:var(--muted)">ต้องใส่รหัส Supervisor เพื่อยืนยัน</span>
+      </div>
+      <div class="field">
+        <label class="lbl">รหัส Supervisor</label>
+        <input type="password" id="cancel-pw" placeholder="รหัสผ่าน Supervisor" onkeydown="if(event.key==='Enter')confirmCancel()">
+      </div>
+      <div class="err-box" id="cancel-err" style="margin-top:10px">รหัสผ่านไม่ถูกต้อง</div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn-ghost" onclick="closeM('modal-cancel')">ยกเลิก</button>
+      <button class="btn-primary" style="background:var(--red)" onclick="confirmCancel()">ยืนยันการยกเลิก</button>
+    </div>
+  </div>
+</div>
+
+
+<div class="overlay" id="modal-hist" style="display:none" onclick="if(event.target===this)closeM('modal-hist')">
+  <div class="modal">
+    <div class="modal-hd">
+      <span class="modal-title">รายละเอียดออเดอร์</span>
+      <button class="modal-x" onclick="closeM('modal-hist')">✕</button>
+    </div>
+    <div class="modal-body" id="hist-detail-body"></div>
+    <div class="modal-ft">
+      <button class="btn-ghost" onclick="closeM('modal-hist')">ปิด</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════
+// SKU BASE DATA (354 SKUs from SO template)
+// ════════════════════════════════════════════
+const SKU_BASE = [{"id":"FG01002","name":"เบบี้คอส Baby Cos ( 300g )","price":67,"uom":"PACK 300g","packsize":"PACK","qty":"300","unit":"g","priceWholesale":61.0},{"id":"FG01003","name":"โรเมนคอส Romaine Cos ( 500g )","price":77,"uom":"PACK 500g","packsize":"PACK","qty":"500","unit":"g","priceWholesale":69.0},{"id":"FG01004","name":"กรีนโอ๊ค Green Oak ( 300g )","price":61,"uom":"PACK 300g","packsize":"PACK","qty":"300","unit":"g","priceWholesale":57.0},{"id":"FG01005","name":"เรดโอ๊ค Red Oak ( 300g )","price":61,"uom":"PACK 300g","packsize":"PACK","qty":"300","unit":"g","priceWholesale":57.0},{"id":"FG01006","name":"ฟินเลย์ ไอซเบิร์ก Frillice Iceberg ( 300g )","price":61,"uom":"PACK 300g","packsize":"PACK","qty":"300","unit":"g","priceWholesale":57.0},{"id":"FG01007","name":"เรด คอรอล Red Coral ( 250g )","price":61,"uom":"PACK 300g","packsize":"PACK","qty":"300","unit":"g","priceWholesale":57.0},{"id":"FG01008","name":"บัตเตอร์เฮด Butterhead ( 300g )","price":61,"uom":"PACK 300g","packsize":"PACK","qty":"300","unit":"g","priceWholesale":57.0},{"id":"FG01009","name":"ผักกาดแก้ว Iceberg","price":65,"uom":"PACK 300g","packsize":"PACK","qty":"300","unit":"g","priceWholesale":59.0},{"id":"FG01010","name":"ผักขม ปวยเหล็ง Chinese Spinach ( 250g )","price":53,"uom":"PACK 250g","packsize":"PACK","qty":"250","unit":"g","priceWholesale":49.0},{"id":"FG01011","name":"เบบี้สปีแนช Baby Spinach ( 100g )","price":92,"uom":"PACK 100g","packsize":"PACK","qty":"100","unit":"g","priceWholesale":87.0},{"id":"FG01014","name":"ร็อกเก็ตป่าตัดราก Wild Rocket ( 100g )","price":60,"uom":"PACK 100g","packsize":"PACK","qty":"100","unit":"g","priceWholesale":57.0},{"id":"FG01017","name":"คะน้าฝรั่งใบหยิก Curly Kale ( 100g )","price":49,"uom":"PACK 100g","packsize":"PACK","qty":"100","unit":"g","priceWholesale":45.0},{"id":"FG01019","name":"คะน้าฮ่องกง Chinese Kale ( 250g )","price":49,"uom":"PACK 250g","packsize":"PACK","qty":"250","unit":"g","priceWholesale":45.0},{"id":"FG01020","name":"กวางตุ้งฮ่องเต้ Shanghai Bok Choy ( 250g )","price":49,"uom":"PACK 250g","packsize":"PACK","qty":"250","unit":"g","priceWholesale":45.0},{"id":"FG01022","name":"ใบงาเกาหลี Kkaennip Leaf (10pce/pack)","price":40,"uom":"PACK 10pc","packsize":"PACK","qty":"10","unit":"pc","priceWholesale":35.0},{"id":"FG01033","name":"คอสไม่ตัดราก Cos salad with root ( 250g )","price":59,"uom":"PACK 250g","packsize":"PACK","qty":"250","unit":"g","priceWholesale":55.0},{"id":"FG01035","name":"เดลิชสลัดมิกซ์ Salad Mixed Delish Foods ( 100g )","price":65,"uom":"PACK 100g","packsize":"PACK","qty":"100","unit":"g","priceWholesale":61.0},{"id":"FG01037","name":"ผักสลัดรวมตัดแต่ง Classic Salad Mixed ( 150g )","price":55,"uom":"PACK 150g","packsize":"PACK","qty":"150","unit":"g","priceWholesale":55.0},{"id":"FG01094","name":"ใบเบบี้คอส","price":49,"uom":"PACK 100g","packsize":"PACK","qty":"100","unit":"g","priceWholesale":39.0},{"id":"FG02001","name":"กะหล่ำปลี Cabbage ( 1kg )","price":69,"uom":"PACK 1kg","packsize":"PACK","qty":"1","unit":"kg","priceWholesale":65.0},{"id":"FG02002","name":"กะหล่ำม่วง Red Cabbage ( 800g )","price":65,"uom":"PACK 800g","packsize":"PACK","qty":"800","unit":"g","priceWholesale":52.0},{"id":"FG02003","name":"ดอกกะหล่ำ Cauliflower ( 400g )","price":65,"uom":"PACK 400g","packsize":"PACK","qty":"400","unit":"g","priceWholesale":61.0},{"id":"FG02004","name":"บรอกโคลี่ Broccoli ( 400g )","price":55,"uom":"PACK 400g","packsize":"PACK","qty":"400","unit":"g","priceWholesale":49.0},{"id":"FG02005","name":"บรอกโคลินี่ Broccolini ( 300g )","price":71,"uom":"PACK 300g","packsize":"PACK","qty":"300","unit":"g","priceWholesale":67.0},{"id":"FG02006","name":"กะหล่ำดาว Brussel Sprout ( 250g )","price":82,"uom":"PACK 250g","packsize":"PACK","qty":"250","unit":"g","priceWholesale":77.0},{"id":"FG03002","name":"หน่อไม้ฝรั่ง บี Asparagus B ( 250g )","price":84,"uom":"PACK 250g","packsize":"PACK","qty":"250","unit":"g","priceWholesale":70.0},{"id":"FG03006","name":"เซเลอรี่ Celery ( 1kg )","price":114,"uom":"PACK 1kg","packsize":"PACK","qty":"1","unit":"kg","priceWholesale":95.0},{"id":"FG03007","name":"เฟนเนลหัว Bulb Fennel ( 200g )","price":49,"uom":"PACK 200g","packsize":"PACK","qty":"200","unit":"g","priceWholesale":45.0},{"id":"FG04001","name":"พาสเลย์ใบหยิก Curly Parsley ( 30g )","price":21,"uom":"PACK 30g","packsize":"PACK","qty":"30","unit":"g","priceWholesale":19.0},{"id":"FG04002","name":"อิตาเลี่ยนพาสเลย์ Italian Parsley ( 30g )","price":31,"uom":"PACK 30g","packsize":"PACK","qty":"30","unit":"g","priceWholesale":29.0},{"id":"FG04003","name":"โรสแมรี่ Rosemary ( 30g )","price":29,"uom":"PACK 30g","packsize":"PACK","qty":"30","unit":"g","priceWholesale":26.0},{"id":"FG04004","name":"ผักชีลาว Dill ( 100g )","price":38,"uom":"PACK 100g","packsize":"PACK","qty":"100","unit":"g","priceWholesale":32.0},{"id":"FG04006","name":"ไทม์ Thyme ( 30g )","price":31,"uom":"PACK 30g","packsize":"PACK","qty":"30","unit":"g","priceWholesale":29.0},{"id":"FG04007","name":"โหระพาฝรั่ง Sweet Basil ( 100g )","price":37,"uom":"PACK 100g","packsize":"PACK","qty":"100","unit":"g","priceWholesale":35.0},{"id":"FG04008","name":"โหระพาไทย Thai Basil ( 100g )","price":21,"uom":"PACK 100g","packsize":"PACK","qty":"100","unit":"g","priceWholesale":19.0},{"id":"FG04009","name":"สะระแหน่ Mint ( 100g )","price":32,"uom":"PACK 100g","packsize":"PACK","qty":"100","unit":"g","priceWholesale":30.0},{"id":"FG04010","name":"ผักชีไทย Coriander ( 50g )","price":25,"uom":"PACK 50g","packsize":"PACK","qty":"50","unit":"g","priceWholesale":20.0},{"id":"FG04011","name":"ผักชีฝรั่ง Sawtooth Coriander ( 50g )","price":19,"uom":"PACK 50g","packsize":"PACK","qty":"50","unit":"g","priceWholesale":16.0},{"id":"FG04014","name":"ต้นหอม Spring Onion ( 50g )","price":19,"uom":"PACK 50g","packsize":"PACK","qty":"50","unit":"g","priceWholesale":15.0},{"id":"FG05001","name":"เห็ดออรินจิ Erinji Mushroom ( 200g )","price":27,"uom":"PACK 200g","packsize":"PACK","qty":"200","unit":"g","priceWholesale":25.0},{"id":"FG05002","name":"เห็ดชิเมจิขาว Shimeji White","price":27,"uom":"PACK","packsize":"PACK","qty":"","unit":"","priceWholesale":25.0},{"id":"FG05003","name":"เห็ดชิเมจิน้ำตาล Shimeji Brown","price":27,"uom":"PACK","packsize":"PACK","qty":"","unit":"","priceWholesale":25.0},{"id":"FG05004","name":"เห็ดหอม Shiitake Mushroom ( 200g )","price":65,"uom":"PACK 200g","packsize":"PACK","qty":"200","unit":"g","priceWholesale":54.0},{"id":"FG05007","name":"เห็ดเข็มทอง Enoki Mushroom","price":17,"uom":"PACK","packsize":"PACK","qty":"","unit":"","priceWholesale":14.0},{"id":"FG05008","name":"เห็ดแชมปิญอง Champignon ( 250g )","price":95,"uom":"PACK 250g","packsize":"PACK","qty":"250","unit":"g","priceWholesale":67.0},{"id":"FG05010","name":"เห็ดสวิส บราวน์ Swiss Brown ( 200g )","price":98,"uom":"PACK 200g","packsize":"PACK","qty":"200","unit":"g","priceWholesale":85.0},{"id":"FG05012","name":"เห็ดหอมแห้ง Dried Shiitake (80g)","price":98,"uom":"PACK 80g","packsize":"PACK","qty":"80","unit":"g","priceWholesale":89.0},{"id":"FG05016","name":"เห็ดไมตาเกะ Maitake","price":65,"uom":"PACK","packsize":"PACK","qty":"","unit":"","priceWholesale":55.0},{"id":"FG06001","name":"แรดิช Red Radish (200g)","price":41,"uom":"PACK 200g","packsize":"PACK","qty":"200","unit":"g","priceWholesale":39.0},{"id":"FG06002","name":"หัวไชเท้า Oriental Radish ( 800g )","price":49,"uom":"PACK 800g","packsize":"PACK","qty":"800","unit":"g","priceWholesale":46.0},{"id":"FG06003","name":"บีทรูท Beetroot ( 500g )","price":63,"uom":"PACK 500g","packsize":"PACK","qty":"500","unit":"g","priceWholesale":52.0},{"id":"FG06004","name":"แครอท Carrot ( 500g )","price":31,"uom":"PACK 500g","packsize":"PACK","qty":"500","unit":"g","priceWholesale":29.0},{"id":"FG06005","name":"เบบี้แครอทสีส้ม Orange Baby Carrot ( 250g )","price":55,"uom":"PACK 250g","packsize":"PACK","qty":"250","unit":"g","priceWholesale":45.0},{"id":"FG06008","name":"มันฝรั่งเบอร์โอ Potato Size O ( 500g )","price":35,"uom":"PACK 500g","packsize":"PACK","qty":"500","unit":"g","priceWholesale":29.0},{"id":"FG06009","name":"มันซุป Cocktail Potato ( 500g )","price":57,"uom":"PACK 500g","packsize":"PACK","qty":"500","unit":"g","priceWholesale":47.0},{"id":"FG06010","name":"มันฝรั่งรัสเซท Potato Russet (1kg)","price":135,"uom":"PACK 1kg","packsize":"PACK","qty":"1","unit":"kg","priceWholesale":125.0},{"id":"FG06012","name":"มันหวานญี่ปุ่น Japanese Sweet Potato ( 500g )","price":72,"uom":"PACK 500g","packsize":"PACK","qty":"500","unit":"g","priceWholesale":68.0},{"id":"FG06022","name":"มันหวานญี่ปุ่น เบนิฮารุกะ ( 1kg )","price":320,"uom":"PACK 1kg","packsize":"PACK","qty":"1","unit":"kg","priceWholesale":300.0},{"id":"FG06099","name":"(AUS) Carrot แครอทออสเตเลีย","price":55,"uom":"PACK 500g","packsize":"PACK","qty":"500","unit":"g","priceWholesale":40.0},{"id":"FG06102","name":"(AUS) Sweet Potato Gold (500g)","price":170,"uom":"PACK 500g","packsize":"PACK","qty":"500","unit":"g","priceWholesale":150.0},{"id":"FG06103","name":"(AUS) Sweet Potato Purple (500g)","price":190,"uom":"PACK 500g","packsize":"PACK","qty":"500","unit":"g","priceWholesale":170.0},{"id":"FG07001","name":"ฟักทองไทย Thai Pumpkin ( 1kg )","price":65,"uom":"PACK 1kg","packsize":"PACK","qty":"1","unit":"kg","priceWholesale":59.0},{"id":"FG07002","name":"ฟักทองญี่ปุ่น Japanese Pumpkin ( 1kg )","price":114,"uom":"PACK 1kg","packsize":"PACK","qty":"1","unit":"kg","priceWholesale":95.0},{"id":"FG07003","name":"ซูกินี Zucchini ( 500g )","price":59,"uom":"PACK 500g","packsize":"PACK","qty":"500","unit":"g","priceWholesale":55.0},{"id":"FG07004","name":"แตงกวาญี่ปุ่น Japanese Cucumber ( 500g )","price":49,"uom":"PACK 500g","packsize":"PACK","qty":"500","unit":"g","priceWholesale":45.0},{"id":"FG07006","name":"ฟักทองมินิบอล Mini Ball Pumpkin ( 1kg )","price":156,"uom":"PACK 1kg","packsize":"PACK","qty":"1","unit":"kg","priceWholesale":130.0},{"id":"FG07007","name":"บัตเตอร์นัทสควอช Butternut Squash ( 1kg )","price":155,"uom":"PACK 1kg","packsize":"PACK","qty":"1","unit":"kg","priceWholesale":140.0},{"id":"FG07040","name":"แตงกวามินิคิวป์ Mini Cuke Crispy","price":65,"uom":"PACK 250g","packsize":"PACK","qty":"250","unit":"g","priceWholesale":55.0},{"id":"FG08002","name":"หอมใหญ่เบอร์โอ Onion size O ( 500g )","price":37,"uom":"PACK 500g","packsize":"PACK","qty":"500","unit":"g","priceWholesale":30.0},{"id":"FG08003","name":"หอมแขก Red Onion ( 300g )","price":29,"uom":"PACK 300g","packsize":"PACK","qty":"300","unit":"g","priceWholesale":25.0},{"id":"FG08004","name":"ต้นกระเทียม Leek ( 300g )","price":90,"uom":"PACK 300g","packsize":"PACK","qty":"300","unit":"g","priceWholesale":75.0},{"id":"FG08005","name":"ต้นหอมญี่ปุ่น Japanese Bunching Onion ( 300g )","price":49,"uom":"PACK 300g","packsize":"PACK","qty":"300","unit":"g","priceWholesale":45.0},{"id":"FG08006","name":"ถั่วลันเตาหวาน Sugar Snap Pea ( 250g )","price":64,"uom":"PACK 250g","packsize":"PACK","qty":"250","unit":"g","priceWholesale":69.0},{"id":"FG08007","name":"ข้าวโพดหวาน Sweet Corn ( 400g )","price":29,"uom":"PACK 400g","packsize":"PACK","qty":"400","unit":"g","priceWholesale":29.0},{"id":"FG08008","name":"ข้าวโพดฝักอ่อน Baby Corn ( 200g )","price":48,"uom":"PACK 200g","packsize":"PACK","qty":"200","unit":"g","priceWholesale":36.0},{"id":"FG08012","name":"ถั่วแขก French Bean ( 200g )","price":40,"uom":"PACK 200g","packsize":"PACK","qty":"200","unit":"g","priceWholesale":37.0},{"id":"FG08015","name":"กระเทียมจีนทั้งลูก Whole Garlic ( 250g )","price":40,"uom":"PACK 250g","packsize":"PACK","qty":"250","unit":"g","priceWholesale":37.0},{"id":"FG08016","name":"กระเทียมจีนแกะ Peeled Garlic ( 100g )","price":33,"uom":"PACK 100g","packsize":"PACK","qty":"100","unit":"g","priceWholesale":27.0},{"id":"FG08017","name":"หอมใหญ่ปอกเปลือก Onion Peeled (200g)","price":35,"uom":"PACK 200g","packsize":"PACK","qty":"200","unit":"g","priceWholesale":25.0},{"id":"FG08018","name":"หอมแขกปอกเปลือก Red Onion Peeled (200g)","price":35,"uom":"PACK 200g","packsize":"PACK","qty":"200","unit":"g","priceWholesale":25.0},{"id":"FG08044","name":"ข้าวโพดทับทิมสยาม Siam Ruby Queen","price":80,"uom":"PACK 1pc","packsize":"PACK","qty":"1","unit":"pc","priceWholesale":70.0},{"id":"FG08045","name":"ข้าวโพดเพียวไวท์ Purewhite Hokkaido","price":80,"uom":"PCE","packsize":"PCE","qty":"","unit":"","priceWholesale":70.0},{"id":"FG08056","name":"ข้าวโพดหวานพรีมาโกลด์ Premagold Sweet Corn","price":39,"uom":"PCE","packsize":"PCE","qty":"","unit":"","priceWholesale":35.0},{"id":"FG09001","name":"พริกหวานเขียว Green Bell Pepper ( 200g )","price":42,"uom":"PACK 200g","packsize":"PACK","qty":"200","unit":"g","priceWholesale":39.0},{"id":"FG09002","name":"พริกหวานแดง Red Bell Pepper ( 200g )","price":42,"uom":"PACK 200g","packsize":"PACK","qty":"200","unit":"g","priceWholesale":39.0},{"id":"FG09003","name":"พริกหวานเหลือง Yellow Bell Pepper ( 200g )","price":48,"uom":"PACK 200g","packsize":"PACK","qty":"200","unit":"g","priceWholesale":45.0},{"id":"FG09004","name":"มะเขือม่วง Pear Eggplant ( 500g )","price":72,"uom":"PACK 500g","packsize":"PACK","qty":"500","unit":"g","priceWholesale":60.0},{"id":"FG09005","name":"มะเขือม่วงยาวก้านดำ Long Eggplant ( 500g )","price":78,"uom":"PACK 500g","packsize":"PACK","qty":"500","unit":"g","priceWholesale":65.0},{"id":"FG09006","name":"เลมอน Lemon ( 600g )","price":94,"uom":"PACK 600g","packsize":"PACK","qty":"600","unit":"g","priceWholesale":78.0},{"id":"FG09010","name":"มะเขือเทศท้อ Tomato Plum ( 400g )","price":39,"uom":"PACK 400g","packsize":"PACK","qty":"400","unit":"g","priceWholesale":35.0},{"id":"FG09011","name":"มะเขือเทศเนื้อ Tomato Beef ( 500g )","price":75,"uom":"PACK 500g","packsize":"PACK","qty":"500","unit":"g","priceWholesale":65.0},{"id":"FG09012","name":"มะเขือเทศเชอร์รี่ Cherry Tomato ( 200g )","price":37,"uom":"PACK 200g","packsize":"PACK","qty":"200","unit":"g","priceWholesale":35.0},{"id":"FG09020","name":"พริกแม็กซิกัน Jalapeno Pepper ( 100g )","price":40,"uom":"PACK 100g","packsize":"PACK","qty":"100","unit":"g","priceWholesale":37.0},{"id":"FG09022","name":"มะเขือเชอรี่กลมสีแดง Red Berry Tomato ( 250g )","price":89,"uom":"PACK 200g","packsize":"PACK","qty":"200","unit":"g","priceWholesale":79.0},{"id":"FG09023","name":"มะเขือเชอรี่กลมสีเหลือง Yellow Berry Tomato ( 250g )","price":89,"uom":"PACK 200g","packsize":"PACK","qty":"200","unit":"g","priceWholesale":79.0},{"id":"FG09025","name":"มะเขือเชอรี่คละสี Fancy Tomato ( 250g )","price":89,"uom":"PACK 200g","packsize":"PACK","qty":"200","unit":"g","priceWholesale":79.0},{"id":"FG09058","name":"มะเขือเทศราชินีคละสี ( 200g )","price":48,"uom":"PACK 200g","packsize":"PACK","qty":"200","unit":"g","priceWholesale":40.0},{"id":"FG09068","name":"มะเขือเทศฟักทอง Ribbed Tomato 250g","price":95,"uom":"PACK 250g","packsize":"PACK","qty":"250","unit":"g","priceWholesale":89.0},{"id":"FG09074","name":"พริกหวาน 3 สี","price":91,"uom":"PACK","packsize":"PACK","qty":"","unit":"","priceWholesale":85.0},{"id":"FG09075","name":"พริกหวานออร่า Aura sweet pepper","price":60,"uom":"PACK 200g","packsize":"PACK","qty":"200","unit":"g","priceWholesale":50.0},{"id":"FG10002","name":"กีวีเขียว Green Kiwi ( 4pc )","price":100,"uom":"PACK 4pc","packsize":"PACK","qty":"4","unit":"pc","priceWholesale":90.0},{"id":"FG10004","name":"แก้วมังกร Dragon Fruit ( 500g )","price":65,"uom":"PACK 500g","packsize":"PACK","qty":"500","unit":"g","priceWholesale":55.0},{"id":"FG10005","name":"แคนตาลูป Cantaloupe","price":156,"uom":"PCE","packsize":"PCE","qty":"","unit":"","priceWholesale":130.0},{"id":"FG10006","name":"แตงโม Watermelon","price":170,"uom":"PCE","packsize":"PCE","qty":"","unit":"","priceWholesale":145.0},{"id":"FG10045","name":"ทับทิมอินเดีย Pomegranate","price":135,"uom":"PCE","packsize":"PCE","qty":"","unit":"","priceWholesale":105.0},{"id":"FG10008","name":"บลูเบอรี่สด Blueberry (125g)","price":125,"uom":"PACK","packsize":"PACK","qty":"","unit":"","priceWholesale":105.0},{"id":"FG10010","name":"มะพร้าวอ่อน Coconut Young","price":67,"uom":"PCE","packsize":"PCE","qty":"","unit":"","priceWholesale":60.0},{"id":"FG10011","name":"มะม่วงสุก Mango Ripe ( 1kg )","price":250,"uom":"PACK 1kg","packsize":"PACK","qty":"1","unit":"kg","priceWholesale":200.0},{"id":"FG10014","name":"มะละกอสุกฮอลแลนด์ Papaya Ripe Holland","price":145,"uom":"PACK 1kg","packsize":"PACK","qty":"1","unit":"kg","priceWholesale":120.0},{"id":"FG10016","name":"เมลอนเนื้อเขียว Melon Green Flesh","price":275,"uom":"PCE","packsize":"PCE","qty":"","unit":"","priceWholesale":260.0},{"id":"FG10017","name":"เมลอนเนื้อส้ม Melon Orange Flesh","price":275,"uom":"PCE","packsize":"PCE","qty":"","unit":"","priceWholesale":260.0},{"id":"FG10019","name":"ส้มคั้นน้ำ Orange for Juice ( 1kg )","price":86,"uom":"PACK 1kg","packsize":"PACK","qty":"1","unit":"kg","priceWholesale":79.0},{"id":"FG10020","name":"ส้มซันคิส Orange Sunkist ( 1kg )","price":120,"uom":"PACK 1kg","packsize":"PACK","qty":"1","unit":"kg","priceWholesale":99.0},{"id":"FG10022","name":"ส้มแมนดารินไต้หวัน (1kg)","price":190,"uom":"PACK 1kg","packsize":"PACK","qty":"1","unit":"kg","priceWholesale":179.0},{"id":"FG10023","name":"ส้มโอขาวน้ำผึ้ง Pomelo","price":159,"uom":"PCE","packsize":"PCE","qty":"","unit":"","priceWholesale":148.0},{"id":"FG10024","name":"สัปปะรด Pineapple","price":80,"uom":"PCE","packsize":"PCE","qty":"","unit":"","priceWholesale":75.0},{"id":"FG10027","name":"สาลี่ Chinese Pear ( 3pc )","price":95,"uom":"PACK 3pc","packsize":"PACK","qty":"3","unit":"pc","priceWholesale":89.0},{"id":"FG10029","name":"เสาวรส Passion Fruit ( 500g )","price":78,"uom":"PACK 500g","packsize":"PACK","qty":"500","unit":"g","priceWholesale":55.0},{"id":"FG10030","name":"องุ่นเขียวไร้เมล็ด Green Grape Seedless (500g)","price":290,"uom":"PACK 500g","packsize":"PACK","qty":"500","unit":"g","priceWholesale":250.0},{"id":"FG10031","name":"องุ่นดำไร้เมล็ด Black Grape Seedless (500g)","price":290,"uom":"PACK 500g","packsize":"PACK","qty":"500","unit":"g","priceWholesale":250.0},{"id":"FG10032","name":"องุ่นแดงไร้เมล็ด Red Grape Seedless (500g)","price":290,"uom":"PACK 500g","packsize":"PACK","qty":"500","unit":"g","priceWholesale":250.0},{"id":"FG10033","name":"แอปเปิ้ลเขียว Apple Green Granny Smith ( 4pc )","price":105,"uom":"PACK 4pc","packsize":"PACK","qty":"4","unit":"pc","priceWholesale":99.0},{"id":"FG10035","name":"แอปเปิ้ลกาล่า Apple Gala ( 4pc )","price":119,"uom":"PACK 4pc","packsize":"PACK","qty":"4","unit":"pc","priceWholesale":99.0},{"id":"FG10038","name":"ส้มซันคิสคาราคาร่า Cara Cara (1kg)","price":179,"uom":"PACK 1kg","packsize":"PACK","qty":"1","unit":"kg","priceWholesale":169.0},{"id":"FG10042","name":"เชอร์รี่นำเข้า Imported Cherry ( 250g )","price":390,"uom":"PACK 500g","packsize":"PACK","qty":"500","unit":"g","priceWholesale":350.0},{"id":"FG10043","name":"องุ่นดำนิ้วแม่มด Witch Finger Grape (500g)","price":290,"uom":"PACK 500g","packsize":"PACK","qty":"500","unit":"g","priceWholesale":250.0},{"id":"FG10047","name":"กีวีเบอร์รี่ Kiwiberry (125g)","price":250,"uom":"PACK","packsize":"PACK","qty":"","unit":"","priceWholesale":230.0},{"id":"FG10049","name":"กีวีสีทอง Golden Kiwi ( 4pc )","price":150,"uom":"PACK 4pc","packsize":"PACK","qty":"4","unit":"pc","priceWholesale":140.0},{"id":"FG10051","name":"ลิ้นจี่ พันธุ์สนมยิ้ม Lychee (1kg)","price":1100,"uom":"PACK 1kg","packsize":"PACK","qty":"1","unit":"kg","priceWholesale":1100.0},{"id":"FG10052","name":"แอปเปิ้ลเอ็นวี่ Apple Envy ( 2pc )","price":170,"uom":"PACK 2pc","packsize":"PACK","qty":"2","unit":"pc","priceWholesale":150.0},{"id":"FG10053","name":"แอปเปิ้ลควีน Apple Queen ( 4pc )","price":95,"uom":"PACK 4pc","packsize":"PACK","qty":"4","unit":"pc","priceWholesale":75.0},{"id":"FG10057","name":"แตงโมเหลือง Yellow Watermelon","price":165,"uom":"PCE","packsize":"PCE","qty":"","unit":"","priceWholesale":165.0},{"id":"FG10058","name":"กาเลีย เมลอน Galia Melon","price":275,"uom":"PCE","packsize":"PCE","qty":"","unit":"","priceWholesale":260.0},{"id":"FG10062","name":"สตอเบอรี่ เกาหลี Strawberry (250g)","price":250,"uom":"PACK 250g","packsize":"PACK","qty":"250","unit":"g","priceWholesale":230.0},{"id":"FG10064","name":"ทับทิมตูนีเซีย Tunisia Pomegranate","price":125,"uom":"PCE","packsize":"PCE","qty":"","unit":"","priceWholesale":105.0},{"id":"FG10066","name":"เคปกูสเบอรี่ Cape Gooseberry ( 500g )","price":140,"uom":"PACK 500g","packsize":"PACK","qty":"500","unit":"g","priceWholesale":120.0},{"id":"FG10067","name":"อโวคาโดแฮส Avocado Hass","price":79,"uom":"PCE","packsize":"PCE","qty":"","unit":"","priceWholesale":69.0},{"id":"FG10068","name":"แอปเปิ้ลฟูจิแก่นน้ำผึ้ง Fuji Apple ( 2pc )","price":120,"uom":"PACK 2pc","packsize":"PACK","qty":"2","unit":"pc","priceWholesale":100.0},{"id":"FG10069","name":"ส้มแมนดารินจิ๋ว Baby Mandarin Orange ( 1kg )","price":180,"uom":"PACK 1kg","packsize":"PACK","qty":"1","unit":"kg","priceWholesale":160.0},{"id":"FG10074","name":"กล้วยหอมห่าม Banana Half-Ripe","price":150,"uom":"PCE","packsize":"PCE","qty":"","unit":"","priceWholesale":135.0},{"id":"FG10077","name":"ทับทิมสเปน Spain Pomegranate","price":135,"uom":"PCE","packsize":"PCE","qty":"","unit":"","priceWholesale":105.0},{"id":"FG10081","name":"มะเดื่อฝรั่ง Fig ( 200g )","price":159,"uom":"PACK 250g","packsize":"PACK","qty":"250","unit":"g","priceWholesale":149.0},{"id":"FG10087","name":"ฝรั่ง Green Guava ( 1kg )","price":89,"uom":"PACK 1kg","packsize":"PACK","qty":"1","unit":"kg","priceWholesale":85.0},{"id":"FG10090","name":"เงาะ Rambutan (1kg)","price":85,"uom":"PACK 1kg","packsize":"PACK","qty":"1","unit":"kg","priceWholesale":70.0},{"id":"FG10092","name":"กล้วยน้ำว้า Banana","price":59,"uom":"PCE","packsize":"PCE","qty":"","unit":"","priceWholesale":55.0},{"id":"FG10093","name":"ลำไย Longan ( 1kg )","price":120,"uom":"PACK 1kg","packsize":"PACK","qty":"1","unit":"kg","priceWholesale":100.0},{"id":"FG10094","name":"มังคุด Mangosteen (1kg)","price":150,"uom":"PACK 1kg","packsize":"PACK","qty":"1","unit":"kg","priceWholesale":140.0},{"id":"FG10095","name":"มะยงชิด Sweet Yellow Marian Plum ( 1kg )","price":390,"uom":"PACK 1kg","packsize":"PACK","qty":"1","unit":"kg","priceWholesale":380.0},{"id":"FG10098","name":"แก้วมังกรแดง Red Dragon Fruit","price":75,"uom":"PACK 500g","packsize":"PACK","qty":"500","unit":"g","priceWholesale":65.0},{"id":"FG10100","name":"ฝรั่งไส้แดง Red Guava (1kg)","price":140,"uom":"PACK 1kg","packsize":"PACK","qty":"1","unit":"kg","priceWholesale":110.0},{"id":"FG10101","name":"มะพร้าวเผา Roasted Coconut","price":49,"uom":"PCE","packsize":"PCE","qty":"","unit":"","priceWholesale":46.0},{"id":"FG10102","name":"ฝรั่งกิมจู Guava Gimju ( 1kg )","price":120,"uom":"PACK 1kg","packsize":"PACK","qty":"1","unit":"kg","priceWholesale":80.0},{"id":"FG10105","name":"ส้มโอทับทิมสยาม Siam Ruby Pomelo","price":285,"uom":"PCE","packsize":"PCE","qty":"","unit":"","priceWholesale":250.0},{"id":"FG10106","name":"สละ Salacca ( 1kg )","price":210,"uom":"PACK 1kg","packsize":"PACK","qty":"1","unit":"kg","priceWholesale":190.0},{"id":"FG10107","name":"พลับนิวซีแลนด์ New Zealand Persimmon","price":40,"uom":"PCE","packsize":"PCE","qty":"","unit":"","priceWholesale":35.0},{"id":"FG10109","name":"แอปเปิ้ลกิลแม็ค Apple Gilmac NZ ( 2pc )","price":54,"uom":"PACK 2pc","packsize":"PACK","qty":"2","unit":"pc","priceWholesale":38.0},{"id":"FG10112","name":"พีชขาว White Peach ( 600g )","price":300,"uom":"PACK 600g","packsize":"PACK","qty":"600","unit":"g","priceWholesale":250.0},{"id":"FG10113","name":"องุ่นไชน์มัสแคท Shine Muscat Grape ( 500g )","price":350,"uom":"PACK 500g","packsize":"PACK","qty":"500","unit":"g","priceWholesale":300.0},{"id":"FG10159","name":"แพรแดง Red Pear AUS ( 2pc )","price":120,"uom":"PACK 2pc","packsize":"PACK","qty":"2","unit":"pc","priceWholesale":100.0},{"id":"FG10163","name":"สัปปะรดภูแล Pineapple Phulae","price":36,"uom":"PCE","packsize":"PCE","qty":"","unit":"","priceWholesale":25.0},{"id":"FG10187","name":"ชมพู่ทับทิมจันทร์ Rose Apples (1kg)","price":130,"uom":"PACK 1kg","packsize":"PACK","qty":"1","unit":"kg","priceWholesale":120.0},{"id":"FG10228","name":"แตงโมส้มควีนเลดี้ Orange Queen Lady Watermelon","price":165,"uom":"PACK 4kg","packsize":"PACK","qty":"4","unit":"kg","priceWholesale":155.0},{"id":"FG10233","name":"แตงโมเล็ก Small Watermelon","price":70,"uom":"PCE","packsize":"PCE","qty":"","unit":"","priceWholesale":60.0},{"id":"FG10234","name":"แคนตาลูปไข่มุก","price":85,"uom":"PCE","packsize":"PCE","qty":"","unit":"","priceWholesale":65.0},{"id":"FG10250","name":"น้อยหน่าสีม่วง Purple Custard Apple (1kg)","price":120,"uom":"PACK 1kg","packsize":"PACK","qty":"1","unit":"kg","priceWholesale":100.0},{"id":"FG10252","name":"เมลอนสีทอง Golden Melon","price":250,"uom":"PCE","packsize":"PCE","qty":"","unit":"","priceWholesale":230.0},{"id":"FG10253","name":"แก้วมังกรเหลือง Yellow Dragon Fruit","price":75,"uom":"PACK 500g","packsize":"PACK","qty":"500","unit":"g","priceWholesale":65.0},{"id":"FG10255","name":"แอปเปิ้ลโซลูน่า Soluna Apple (2pce)","price":80,"uom":"PACK 2pc","packsize":"PACK","qty":"2","unit":"pc","priceWholesale":70.0},{"id":"FG11001","name":"ผักโขมไทย Thai Spinach ( 250g )","price":41,"uom":"PACK 250g","packsize":"PACK","qty":"250","unit":"g","priceWholesale":21.0},{"id":"FG11003","name":"ผักบุ้งจีน Chinese Morning Glory ( 300g )","price":41,"uom":"PACK 300g","packsize":"PACK","qty":"300","unit":"g","priceWholesale":27.0},{"id":"FG11004","name":"ผักบุ้งไทย Thai Morning Glory ( 300g )","price":40,"uom":"PACK 300g","packsize":"PACK","qty":"300","unit":"g","priceWholesale":27.0},{"id":"FG11006","name":"คะน้าไทย Thai Kale ( 300g )","price":35,"uom":"PACK 300g","packsize":"PACK","qty":"300","unit":"g","priceWholesale":29.0},{"id":"FG11007","name":"ขึ้นฉ่ายไทย Thai Celery ( 50g )","price":22,"uom":"PACK 50g","packsize":"PACK","qty":"50","unit":"g","priceWholesale":16.0},{"id":"FG11009","name":"ตำลึง Coccinia Grandis ( 300g )","price":50,"uom":"PACK 300g","packsize":"PACK","qty":"300","unit":"g","priceWholesale":47.0},{"id":"FG11010","name":"ยอดฟักแม้ว Chayote Shoots (300g)","price":49,"uom":"PACK 300g","packsize":"PACK","qty":"300","unit":"g","priceWholesale":45.0},{"id":"FG11011","name":"ชะอม Acacia Pennata ( 250g )","price":59,"uom":"PACK 250g","packsize":"PACK","qty":"250","unit":"g","priceWholesale":59.0},{"id":"FG11016","name":"ผักกาดขาว Chinese Cabbage ( 1kg )","price":81,"uom":"PACK 1kg","packsize":"PACK","qty":"1","unit":"kg","priceWholesale":79.0},{"id":"FG11018","name":"ผักกาดหอม Lettuce (300g)","price":49,"uom":"PACK 300g","packsize":"PACK","qty":"300","unit":"g","priceWholesale":45.0},{"id":"FG11020","name":"ยอดคะน้า Baby Kale Thai ( 250g )","price":31,"uom":"PACK 250g","packsize":"PACK","qty":"250","unit":"g","priceWholesale":27.0},{"id":"FG11022","name":"ผักกวางตุ้ง Kwang Tung ( 250g )","price":31,"uom":"PACK 250g","packsize":"PACK","qty":"250","unit":"g","priceWholesale":27.0},{"id":"FG12001","name":"ใบกะเพรา Holy Basil ( 100g )","price":23,"uom":"PACK 100g","packsize":"PACK","qty":"100","unit":"g","priceWholesale":21.0},{"id":"FG12003","name":"กระชายหัว Finger Root ( 100g )","price":20,"uom":"PACK 100g","packsize":"PACK","qty":"100","unit":"g","priceWholesale":15.0},{"id":"FG12005","name":"กระเทียมไทยกลีบ Thai Garlic ( 100g )","price":35,"uom":"PACK 100g","packsize":"PACK","qty":"100","unit":"g","priceWholesale":26.0},{"id":"FG12006","name":"กระเทียมไทยทั้งลูก Thai Whole Garlic ( 250g )","price":69,"uom":"PACK 250g","packsize":"PACK","qty":"250","unit":"g","priceWholesale":65.0},{"id":"FG12007","name":"ขิงอ่อน Ginger Young ( 200g )","price":39,"uom":"PACK 200g","packsize":"PACK","qty":"200","unit":"g","priceWholesale":30.0},{"id":"FG12009","name":"ขิงแก่ Ginger ( 200g )","price":39,"uom":"PACK 200g","packsize":"PACK","qty":"200","unit":"g","priceWholesale":25.0},{"id":"FG12010","name":"ข่าแก่ Mature Galangal ( 200g )","price":27,"uom":"PACK 200g","packsize":"PACK","qty":"200","unit":"g","priceWholesale":22.0},{"id":"FG12012","name":"ตะไคร้ Lemon Grass ( 100g )","price":15,"uom":"PACK 100g","packsize":"PACK","qty":"100","unit":"g","priceWholesale":10.0},{"id":"FG12013","name":"ใบแมงลัก Thai Lemon Basil ( 100g )","price":25,"uom":"PACK 100g","packsize":"PACK","qty":"100","unit":"g","priceWholesale":21.0},{"id":"FG12014","name":"ใบมะกรูด Kaffir Lime Leaves ( 20g )","price":15,"uom":"PACK 20g","packsize":"PACK","qty":"20","unit":"g","priceWholesale":15.0},{"id":"FG12015","name":"มะขามเปียก Tamarind Paste ( 200g )","price":47,"uom":"PACK 200g","packsize":"PACK","qty":"200","unit":"g","priceWholesale":37.0},{"id":"FG12016","name":"รากผักชี Coriander Root ( 50g )","price":35,"uom":"PACK 50g","packsize":"PACK","qty":"50","unit":"g","priceWholesale":25.0},{"id":"FG12017","name":"หอมแดงไทย Shallot ( 250g )","price":59,"uom":"PACK 250g","packsize":"PACK","qty":"250","unit":"g","priceWholesale":55.0},{"id":"FG12019","name":"ขมิ้นเหลือง Turmeric ( 200g )","price":26,"uom":"PACK 200g","packsize":"PACK","qty":"200","unit":"g","priceWholesale":22.0},{"id":"FG12021","name":"หอมแดงไทยปอกเปลือก Shallot Peeled (100g)","price":40,"uom":"PACK 100g","packsize":"PACK","qty":"100","unit":"g","priceWholesale":30.0},{"id":"FG12023","name":"ข่าอ่อน Young Galangal ( 200g )","price":41,"uom":"PACK 200g","packsize":"PACK","qty":"200","unit":"g","priceWholesale":22.0},{"id":"FG14001","name":"แตงกวา Small Cucumber ( 300g )","price":25,"uom":"PACK 300g","packsize":"PACK","qty":"300","unit":"g","priceWholesale":21.0},{"id":"FG14002","name":"แตงร้าน Big Cucumber ( 500g )","price":41,"uom":"PACK 500g","packsize":"PACK","qty":"500","unit":"g","priceWholesale":37.0},{"id":"FG14003","name":"มะระจีน Chinese Bitter Gourd ( 400g )","price":61,"uom":"PACK 400g","packsize":"PACK","qty":"400","unit":"g","priceWholesale":49.0},{"id":"FG14004","name":"ฟัก Gourd","price":60,"uom":"PACK 900g","packsize":"PACK","qty":"900","unit":"g","priceWholesale":57.0},{"id":"FG14007","name":"บวบอ่อน Young Gourd ( 500g )","price":55,"uom":"PACK 500g","packsize":"PACK","qty":"500","unit":"g","priceWholesale":49.0},{"id":"FG14009","name":"บวบเหลี่ยม Angled Gourd ( 500g )","price":55,"uom":"PACK 500g","packsize":"PACK","qty":"500","unit":"g","priceWholesale":55.0},{"id":"FG15001","name":"ถั่วฝักยาว Yard Long Bean ( 200g )","price":35,"uom":"PACK 200g","packsize":"PACK","qty":"200","unit":"g","priceWholesale":29.0},{"id":"FG16001","name":"มะนาวแป้นเขียว Lime ( 4pc )","price":35,"uom":"PACK 4pc","packsize":"PACK","qty":"4","unit":"pc","priceWholesale":20.0},{"id":"FG16002","name":"มะนาวไร้เมล็ด Seedless Lime (4pc)","price":35,"uom":"PACK 4pc","packsize":"PACK","qty":"4","unit":"pc","priceWholesale":30.0},{"id":"FG16004","name":"มะละกอดิบ Papaya Green ( 800g )","price":65,"uom":"PACK 800g","packsize":"PACK","qty":"800","unit":"g","priceWholesale":45.0},{"id":"FG16005","name":"กระเจี้ยบเขียว Okra ( 150g )","price":35,"uom":"PACK 150g","packsize":"PACK","qty":"150","unit":"g","priceWholesale":20.0},{"id":"FG16006","name":"มะเขือยาวเขียว Thai Long Green Aubergine ( 500g )","price":55,"uom":"PACK 500g","packsize":"PACK","qty":"500","unit":"g","priceWholesale":51.0},{"id":"FG16007","name":"มะเขือเปราะ Eggplant White Thai ( 200g )","price":45,"uom":"PACK 200g","packsize":"PACK","qty":"200","unit":"g","priceWholesale":27.0},{"id":"FG16008","name":"มะเขือพวง Thai Pea Aubergine ( 200g )","price":35,"uom":"PACK 200g","packsize":"PACK","qty":"200","unit":"g","priceWholesale":39.0},{"id":"FG16017","name":"พริกขี้หนูเขียว Green Bird's Eye Chilli ( 50g )","price":20,"uom":"PACK 50g","packsize":"PACK","qty":"50","unit":"g","priceWholesale":20.0},{"id":"FG16018","name":"พริกขี้หนูแดง Red Bird's Eye Chilli ( 50g )","price":20,"uom":"PACK 50g","packsize":"PACK","qty":"50","unit":"g","priceWholesale":20.0},{"id":"FG16019","name":"พริกขี้หนูสวนเล็ก Small Chilli (50g)","price":20,"uom":"PACK 50g","packsize":"PACK","qty":"50","unit":"g","priceWholesale":25.0},{"id":"FG16020","name":"พริกชี้ฟ้าแดง Chilli Red ( 100g )","price":20,"uom":"PACK 100g","packsize":"PACK","qty":"100","unit":"g","priceWholesale":19.0},{"id":"FG16021","name":"พริกชี้ฟ้าแดงแห้ง Dried Chili ( 80g )","price":35,"uom":"PACK 80g","packsize":"PACK","qty":"80","unit":"g","priceWholesale":31.0},{"id":"FG16022","name":"พริกขี้หนูแห้ง Dried Chilli ( 80g )","price":45,"uom":"PACK 80g","packsize":"PACK","qty":"80","unit":"g","priceWholesale":26.0},{"id":"FG16023","name":"พริกชี้ฟ้าเหลือง Chilli Yellow ( 100g )","price":20,"uom":"PACK 100g","packsize":"PACK","qty":"100","unit":"g","priceWholesale":32.0},{"id":"FG16024","name":"พริกชี้ฟ้าเขียว Chilli Green ( 100g )","price":20,"uom":"PACK 100g","packsize":"PACK","qty":"100","unit":"g","priceWholesale":19.0},{"id":"FG16026","name":"พริกไทยอ่อน Green Peppercorn ( 50g )","price":35,"uom":"PACK 50g","packsize":"PACK","qty":"50","unit":"g","priceWholesale":62.0},{"id":"FG16027","name":"พริกหยวก Chilli Green Prik Yuak ( 200g )","price":35,"uom":"PACK 200g","packsize":"PACK","qty":"200","unit":"g","priceWholesale":39.0},{"id":"FG17008","name":"ดอกไม้ทานได้คละ Mixed Edible Flowers","price":120,"uom":"PACK","packsize":"PACK","qty":"","unit":"","priceWholesale":240.0},{"id":"FG18002","name":"เผือก Taro (1kg)","price":85,"uom":"PACK 1kg","packsize":"PACK","qty":"1","unit":"kg","priceWholesale":79.0},{"id":"FG18003","name":"มันเทศม่วง Purple Sweet Potato ( 500g )","price":55,"uom":"PACK 500g","packsize":"PACK","qty":"500","unit":"g","priceWholesale":39.0},{"id":"FG18004","name":"มันเทศเนื้อส้ม Orange Flesh Sweet Potato ( 500g )","price":55,"uom":"PACK 500g","packsize":"PACK","qty":"500","unit":"g","priceWholesale":29.0},{"id":"FG18006","name":"ยอดมะพร้าว Coconut Stalk (500g)","price":75,"uom":"PACK 500g","packsize":"PACK","qty":"500","unit":"g","priceWholesale":57.0},{"id":"FG19007","name":"เบบี้ซอเรลแดง Baby Red Veined Sorrel","price":120,"uom":"PACK","packsize":"PACK","qty":"","unit":"","priceWholesale":79.0},{"id":"FG22001","name":"ออร์แกนิค กรีนโอ๊ค Green Oak Organic ( 250g )","price":75,"uom":"PACK 250g","packsize":"PACK","qty":"250","unit":"g","priceWholesale":45.0},{"id":"FG22002","name":"ออร์แกนิค เรดโอ๊ค Red Oak Organic ( 250g )","price":75,"uom":"PACK 250g","packsize":"PACK","qty":"250","unit":"g","priceWholesale":45.0},{"id":"FG22003","name":"ออร์แกนิค ฟินเลย์ไอเบิร์ก Frillice Iceberg Organic ( 250g )","price":75,"uom":"PACK 250g","packsize":"PACK","qty":"250","unit":"g","priceWholesale":45.0},{"id":"FG22004","name":"ออร์แกนิค เรด คอรอล Red Coral Organic ( 250g )","price":75,"uom":"PACK 250g","packsize":"PACK","qty":"250","unit":"g","priceWholesale":35.0},{"id":"FG22005","name":"ออร์แกนิค บัตเตอร์เฮด Butterhead Organic ( 250g )","price":75,"uom":"PACK 250g","packsize":"PACK","qty":"250","unit":"g","priceWholesale":45.0},{"id":"FG22006","name":"ออร์แกนิค กรีนคอส Green Cos Organic ( 250g )","price":75,"uom":"PACK 250g","packsize":"PACK","qty":"250","unit":"g","priceWholesale":45.0},{"id":"FG22011","name":"ออร์แกนิค เบบี้คอส Baby Cos Organic ( 200g )","price":85,"uom":"PACK 250g","packsize":"PACK","qty":"250","unit":"g","priceWholesale":49.0},{"id":"FG22012","name":"ออร์แกนิค คะน้าใบหยิก Curly Kale Organic ( 200g )","price":65,"uom":"PACK 200g","packsize":"PACK","qty":"200","unit":"g","priceWholesale":60.0},{"id":"FG22013","name":"ออร์แกนิค ร็อกเก็ตป่า Wild Rocket Organic ( 150g )","price":65,"uom":"PACK 150g","packsize":"PACK","qty":"150","unit":"g","priceWholesale":65},{"id":"FG22018","name":"ออร์แกนิค ผักกวางตุ้ง Kwang Tung Organic ( 200g )","price":49,"uom":"PACK 200g","packsize":"PACK","qty":"200","unit":"g","priceWholesale":49.0},{"id":"FG22019","name":"ออร์แกนิค คะน้าไทย Kale Thai Organic ( 200g )","price":49,"uom":"PACK 200g","packsize":"PACK","qty":"200","unit":"g","priceWholesale":19.0},{"id":"FG22020","name":"ออร์แกนิค กวางตุ้งฮ่องเต้ Taiwanese Bok Choy Organic ( 200g )","price":55,"uom":"PACK 200g","packsize":"PACK","qty":"200","unit":"g","priceWholesale":59.0},{"id":"FG22021","name":"ออร์แกนิค ผักบุ้งจีน Chinese Morning Glory Organic ( 200g )","price":55,"uom":"PACK 200g","packsize":"PACK","qty":"200","unit":"g","priceWholesale":25.0},{"id":"FG22024","name":"ออร์แกนิค กะหล่ำปลี Cabbage Organic ( 500g )","price":75,"uom":"PACK 500g","packsize":"PACK","qty":"500","unit":"g","priceWholesale":59.0},{"id":"FG22031","name":"ออร์แกนิค มะเขือเทศเชอรี่ Cherry Tomato Organic ( 250g )","price":89,"uom":"PACK 250g","packsize":"PACK","qty":"250","unit":"g","priceWholesale":39.0},{"id":"FG22033","name":"ออร์แกนิค ผักกาดขาวปลี Michilli Cabbage Organic ( 500g )","price":79,"uom":"PACK 500g","packsize":"PACK","qty":"500","unit":"g","priceWholesale":45.0},{"id":"FG22034","name":"ออร์แกนิค ข้าวโพดหวาน Sweet Corn Organic ( 500g )","price":55,"uom":"PACK 500g","packsize":"PACK","qty":"500","unit":"g","priceWholesale":49.0},{"id":"FG22035","name":"ออร์แกนิค เบบี้แครอท Baby Carrot Organic ( 250g )","price":65,"uom":"PACK 250g","packsize":"PACK","qty":"250","unit":"g","priceWholesale":43.0},{"id":"FG22039","name":"ออร์แกนิค สลัดแก้ว Iceberg Organic ( 200g )","price":65,"uom":"PACK 200g","packsize":"PACK","qty":"200","unit":"g","priceWholesale":25.0},{"id":"FG22040","name":"ออร์แกนิค ปวยเล้ง Spinach Organic ( 200g )","price":55,"uom":"PACK 200g","packsize":"PACK","qty":"200","unit":"g","priceWholesale":25.0},{"id":"FG22042","name":"ออร์แกนิค วอเตอร์เครส Watercress Organic ( 100g )","price":79,"uom":"PACK 100g","packsize":"PACK","qty":"100","unit":"g","priceWholesale":49.0},{"id":"FG22051","name":"ออร์แกนิค เบบี้ผักฉ่อย Baby Pok Choy Organic ( 200g )","price":55,"uom":"PACK 200g","packsize":"PACK","qty":"200","unit":"g","priceWholesale":69.0},{"id":"FG22052","name":"ออร์แกนิค จิงจูฉ่าย White Mugwort Organic ( 200g )","price":75,"uom":"PACK 200g","packsize":"PACK","qty":"200","unit":"g","priceWholesale":24.0},{"id":"FG22053","name":"ออร์แกนิค แตงกวา Cucumber Organic ( 250g )","price":59,"uom":"PACK 250g","packsize":"PACK","qty":"250","unit":"g","priceWholesale":39.0},{"id":"FG22054","name":"ออร์แกนิค แตงร้าน Long Cucumber Organic ( 500g )","price":79,"uom":"PACK 500g","packsize":"PACK","qty":"500","unit":"g","priceWholesale":49.0},{"id":"FG22055","name":"ออร์แกนิค กระเจี๊ยบเขียว Okra Organic ( 200g )","price":69,"uom":"PACK 200g","packsize":"PACK","qty":"200","unit":"g","priceWholesale":49.0},{"id":"FG22056","name":"ออร์แกนิค ถั่วฝักยาว Yard Long Bean Organic ( 250g )","price":59,"uom":"PACK 250g","packsize":"PACK","qty":"250","unit":"g","priceWholesale":59.0},{"id":"FG22058","name":"ออร์แกนิค บวบเหลี่ยม Lium Zucchini Organic ( 500g )","price":69,"uom":"PACK 500g","packsize":"PACK","qty":"500","unit":"g","priceWholesale":69.0},{"id":"FG22059","name":"ออร์แกนิค มะเขือเทศเชอร์รี่สีเหลือง Yellow Cherry Tomato Organic ( 250g )","price":89,"uom":"PACK 250g","packsize":"PACK","qty":"250","unit":"g","priceWholesale":51.0},{"id":"FG22060","name":"ออร์แกนิค มะเขือเทศท้อ Plum Tomato Organic ( 500g )","price":89,"uom":"PACK 500g","packsize":"PACK","qty":"500","unit":"g","priceWholesale":29.0},{"id":"FG22063","name":"ออร์แกนิค มะเขือยาวม่วง Purple Eggplant Organic ( 500g )","price":89,"uom":"PACK 500g","packsize":"PACK","qty":"500","unit":"g","priceWholesale":89.0},{"id":"FG22064","name":"ออร์แกนิค มะเขือยาวเขียว Green Eggplant Organic ( 500g )","price":89,"uom":"PACK 500g","packsize":"PACK","qty":"500","unit":"g","priceWholesale":89.0},{"id":"FG22066","name":"ออร์แกนิค มะระจีน Bitter Gourd Organic ( 1kg )","price":89,"uom":"PACK 1kg","packsize":"PACK","qty":"1","unit":"kg","priceWholesale":119.0},{"id":"FG22075","name":"ออร์แกนิค มะเขือเทศเชอร์รี่สีแดง Red Cherry Tomato Organic ( 250g )","price":89,"uom":"PACK 250g","packsize":"PACK","qty":"250","unit":"g","priceWholesale":89},{"id":"FG22078","name":"ข้าวกล้องสดไรซ์เบอรี่ออร์แกนิค 1kg","price":120,"uom":"PACK 1kg","packsize":"PACK","qty":"1","unit":"kg","priceWholesale":135.0},{"id":"FG22079","name":"ข้าวกล้องสดหอมมะลิแดงออร์แกนิค (1kg)","price":120,"uom":"PACK 1kg","packsize":"PACK","qty":"1","unit":"kg","priceWholesale":125.0},{"id":"FG22080","name":"ข้าวกล้องปิ่นเกษตรออร์แกนิค 1kg","price":120,"uom":"PACK 1kg","packsize":"PACK","qty":"1","unit":"kg","priceWholesale":95.0},{"id":"FG22081","name":"ข้าวไตรทิพย์ออร์แกนิค","price":150,"uom":"PACK 1kg","packsize":"PACK","qty":"1","unit":"kg","priceWholesale":125.0},{"id":"FG22083","name":"ชุดของขวัญ ข้าวกล้องออร์แกนิค 1kg/box","price":350,"uom":"SET","packsize":"SET","qty":"","unit":"","priceWholesale":285.0},{"id":"FG22085","name":"ออร์แกนิค ผักกาดหอมอิตาลี่ Green Lettuce Italian Organic (200g)","price":65,"uom":"PACK 200g","packsize":"PACK","qty":"200","unit":"g","priceWholesale":29.0},{"id":"FG22088","name":"เบบี้คอสแดง","price":75,"uom":"PACK 250g","packsize":"PACK","qty":"250","unit":"g","priceWholesale":45.0},{"id":"FG22092","name":"ออร์แกนิค เห็ดนางฟ้าภูฐาน Bhutan Oyster Mushroom Organic 100g","price":65,"uom":"PACK 100g","packsize":"PACK","qty":"100","unit":"g","priceWholesale":35.0},{"id":"FG22093","name":"ออร์แกนิค เห็ดเข็มทอง Enoki Mushroom Organic 200g","price":55,"uom":"PACK","packsize":"PACK","qty":"","unit":"","priceWholesale":35.0},{"id":"FG22094","name":"ออร์แกนิค เห็ดโคนญี่ปุ่น Yanagi Mushroom Organic 150g","price":65,"uom":"PACK","packsize":"PACK","qty":"","unit":"","priceWholesale":69.0},{"id":"FG22095","name":"ออร์แกนิค เห็ดรวม 4 อย่าง 4 Types Mushroom Organic 200g","price":89,"uom":"PACK","packsize":"PACK","qty":"","unit":"","priceWholesale":65.0},{"id":"FG22098","name":"ออร์แกนิค มิกซ์เบบี้คอส Organic Mix Baby Cos (250g)","price":89,"uom":"PACK 250g","packsize":"PACK","qty":"250","unit":"g","priceWholesale":49.0},{"id":"FG23001","name":"เบอร์เกอร์เนื้อจากพืช Plant-Based Burger Patty (113g)","price":149,"uom":"PACK","packsize":"PACK","qty":"","unit":"","priceWholesale":79.0},{"id":"FG23002","name":"เนื้อบดจากพืช Plant-Based Minced Meat (150g)","price":109,"uom":"PACK","packsize":"PACK","qty":"","unit":"","priceWholesale":79.0},{"id":"FG23003","name":"เนื้อบดจากพืช Plant-Based Minced Meat (1kg)","price":599,"uom":"PACK","packsize":"PACK","qty":"","unit":"","priceWholesale":399.0},{"id":"FG24001","name":"Sausage Cumberland 500g (6pce/pack)","price":320,"uom":"PACK","packsize":"PACK","qty":"","unit":"","priceWholesale":299.0},{"id":"FG24002","name":"Sausage Chicken & Thyme 500g","price":320,"uom":"PACK","packsize":"PACK","qty":"","unit":"","priceWholesale":299.0},{"id":"FG24003","name":"Sausage Maple & Smoked Bacon 500g","price":320,"uom":"PACK","packsize":"PACK","qty":"","unit":"","priceWholesale":299.0},{"id":"FG24004","name":"Sausage Beef & Onion 500g","price":320,"uom":"PACK","packsize":"PACK","qty":"","unit":"","priceWholesale":395.0},{"id":"FG24005","name":"Sausage Chorizo Fresco 500g","price":320,"uom":"PACK","packsize":"PACK","qty":"","unit":"","priceWholesale":340.0},{"id":"FG24006","name":"Sausage Italian Picante 500g","price":320,"uom":"PACK","packsize":"PACK","qty":"","unit":"","priceWholesale":299.0},{"id":"FG24007","name":"US Smoked Bacon (250g)","price":290,"uom":"PACK","packsize":"PACK","qty":"","unit":"","priceWholesale":195.0},{"id":"FG24008","name":"Smoked Back Bacon (200g)","price":290,"uom":"PACK","packsize":"PACK","qty":"","unit":"","priceWholesale":160.0},{"id":"FG24009","name":"Back Bacon (200g)","price":250,"uom":"PACK","packsize":"PACK","qty":"","unit":"","priceWholesale":150.0},{"id":"FG24010","name":"Pancetta (200g)","price":290,"uom":"PACK","packsize":"PACK","qty":"","unit":"","priceWholesale":290},{"id":"FG24014","name":"เบอร์เกอร์เนื้อดรายเอจ Dry Aged Angus Beef Burger (4x125g)","price":490,"uom":"PACK","packsize":"PACK","qty":"","unit":"","priceWholesale":395.0},{"id":"FG24015","name":"เบอร์เกอร์หมูฟรีเรนจ์ Free-Range Pork Burger (4x125g)","price":390,"uom":"PACK","packsize":"PACK","qty":"","unit":"","priceWholesale":275.0},{"id":"FG24016","name":"Salmon from Norway (130g)","price":290,"uom":"PCE","packsize":"PCE","qty":"","unit":"","priceWholesale":189.0},{"id":"FG24017","name":"Snow Fish from Chile (200g)","price":290,"uom":"PCE","packsize":"PCE","qty":"","unit":"","priceWholesale":529.0},{"id":"FG24018","name":"Rib Eye from Australia (125g)","price":490,"uom":"PCE","packsize":"PCE","qty":"","unit":"","priceWholesale":259.0},{"id":"FG24019","name":"Tenderloin from Australia (125g)","price":490,"uom":"PCE","packsize":"PCE","qty":"","unit":"","priceWholesale":299.0},{"id":"FG24020","name":"เบอร์เกอร์บัน Burger Bun 100g (4pce/pack)","price":120,"uom":"PACK","packsize":"PACK","qty":"","unit":"","priceWholesale":128.0},{"id":"FG24021","name":"ซาวอยยาร์ด Savoyard (500g)","price":150,"uom":"PCE","packsize":"PCE","qty":"","unit":"","priceWholesale":130.0},{"id":"FG24022","name":"มัลติเกรน Multigrain (400g)","price":130,"uom":"PCE","packsize":"PCE","qty":"","unit":"","priceWholesale":120.0},{"id":"FG24023","name":"บาแก็ต เทรดดิชั่น Baguette Tradition (350g)","price":120,"uom":"PCE","packsize":"PCE","qty":"","unit":"","priceWholesale":80.0},{"id":"FG24024","name":"เชียบัตต้า Ciabatta 140g (4pce/pack)","price":150,"uom":"PACK","packsize":"PACK","qty":"","unit":"","priceWholesale":152.0},{"id":"FG24025","name":"ดาร์กไรย์ Dark Rye (400g)","price":150,"uom":"PCE","packsize":"PCE","qty":"","unit":"","priceWholesale":80.0},{"id":"FG24026","name":"ขนมปังเบอเกอร์โฮลวีต Vegan Whole Wheat Bun 30g","price":39,"uom":"PCE","packsize":"PCE","qty":"","unit":"","priceWholesale":49.0},{"id":"FG25001","name":"ไข่ไก่ Free Range Egg (10pce/pack)","price":120,"uom":"PACK","packsize":"PACK","qty":"","unit":"","priceWholesale":129.0},{"id":"FG25002","name":"ไข่เป็ดปลอดสาร Free Range Duck Egg (10pce/tray)","price":165,"uom":"PACK","packsize":"PACK","qty":"","unit":"","priceWholesale":129.0},{"id":"FG25004","name":"ไข่ไก่สดปลอดสารเคจฟรี ขนาด M","price":120,"uom":"PACK","packsize":"PACK","qty":"","unit":"","priceWholesale":119.0},{"id":"FG26001","name":"(SP) Black Truffle Oil 250ml","price":890,"uom":"BOTTLE","packsize":"BOTTLE","qty":"","unit":"","priceWholesale":495.0},{"id":"FG26002","name":"(SP) White Truffle Oil 250ml","price":890,"uom":"BOTTLE","packsize":"BOTTLE","qty":"","unit":"","priceWholesale":495.0},{"id":"FG26003","name":"(SP) Black Truffle Sauce 190g","price":690,"uom":"JAR","packsize":"JAR","qty":"","unit":"","priceWholesale":690.0},{"id":"FG26004","name":"(SP) Black Truffle Sauce 90g","price":390,"uom":"JAR","packsize":"JAR","qty":"","unit":"","priceWholesale":430.0},{"id":"FG26005","name":"กระเทียมดำ-หัว Black Garlic-Bulb 200g","price":290,"uom":"PACK","packsize":"PACK","qty":"","unit":"","priceWholesale":290.0},{"id":"FG26006","name":"กระเทียมดำ-โทน Black Garlic-Tone 200g","price":290,"uom":"PACK","packsize":"PACK","qty":"","unit":"","priceWholesale":390.0},{"id":"FG26029","name":"พริกไทยตรังดำ GI ขวดฝาบด 40g","price":150,"uom":"BOTTLE","packsize":"BOTTLE","qty":"","unit":"","priceWholesale":200.0},{"id":"FG26030","name":"พริกไทยแดงตรัง ขวดฝาบด 40g","price":150,"uom":"BOTTLE","packsize":"BOTTLE","qty":"","unit":"","priceWholesale":240.0},{"id":"FG26031","name":"พริกไทยตรังขาว GI ขวดฝาบด 40g","price":150,"uom":"BOTTLE","packsize":"BOTTLE","qty":"","unit":"","priceWholesale":247.0},{"id":"FG26032","name":"พริกไทยตรัง 3สี ขวดฝาบด 40g","price":150,"uom":"BOTTLE","packsize":"BOTTLE","qty":"","unit":"","priceWholesale":220.0},{"id":"FG26036","name":"น้ำสลัดน้ำมันมะกอกผสมเห็ดทรัฟเฟิล Truffle 40g","price":79,"uom":"ซอง","packsize":"ซอง","qty":"","unit":"","priceWholesale":33.0},{"id":"FG26037","name":"น้ำสลัดน้ำมันมะกอกผสมเครื่องเทศพิซซ่า Pizza 40g","price":79,"uom":"ซอง","packsize":"ซอง","qty":"","unit":"","priceWholesale":33.0},{"id":"FG26038","name":"น้ำสลัดน้ำมันมะกอกผสมเบอร์รี่ Berries 40g","price":79,"uom":"ซอง","packsize":"ซอง","qty":"","unit":"","priceWholesale":33.0},{"id":"FG26039","name":"น้ำสลัดน้ำมันมะกอก Caesar Black Truffle 40g","price":79,"uom":"ซอง","packsize":"ซอง","qty":"","unit":"","priceWholesale":79},{"id":"FG26040","name":"น้ำสลัดน้ำมันมะกอกผสมเห็ดทรัฟเฟิล Truffle 255g","price":290,"uom":"BOTTLE","packsize":"BOTTLE","qty":"","unit":"","priceWholesale":179.0},{"id":"FG26041","name":"น้ำสลัดน้ำมันมะกอกผสมเครื่องเทศพิซซ่า Pizza 255g","price":290,"uom":"BOTTLE","packsize":"BOTTLE","qty":"","unit":"","priceWholesale":179.0},{"id":"FG31001","name":"ขนมอบกรอบ Crispy Cauliflower Black Truffle","price":120,"uom":"PCE","packsize":"PCE","qty":"","unit":"","priceWholesale":49.0},{"id":"FG31002","name":"ขนมอบกรอบ Crispy Cauliflower Pizza Flavor","price":120,"uom":"PCE","packsize":"PCE","qty":"","unit":"","priceWholesale":45.0},{"id":"FG31003","name":"ขนมอบกรอบ Crispy Cauliflower Danish Pastry","price":120,"uom":"PCE","packsize":"PCE","qty":"","unit":"","priceWholesale":120},{"id":"FG16081","name":"พริกสกรู","price":35,"uom":"PACK 200g","packsize":"PACK","qty":"200","unit":"g","priceWholesale":50.0},{"id":"FG10181","name":"(AUS) Blood Orange (1kg)","price":270,"uom":"PACK 1kg","packsize":"PACK","qty":"1","unit":"kg","priceWholesale":240.0},{"id":"FG10183","name":"ราสเบอรี่ Raspberry (125g)","price":175,"uom":"PACK","packsize":"PACK","qty":"","unit":"","priceWholesale":165.0},{"id":"FG22007","name":"ออร์แกนิค เรดปัตตาเวีย Red Batavia Organic ( 200g )","price":75,"uom":"PACK 200g","packsize":"PACK","qty":"200","unit":"g","priceWholesale":35.0},{"id":"FG10251","name":"เสาวรสน้ำผึ้ง Honey Passion Fruit (500g)","price":80,"uom":"PACK 500g","packsize":"PACK","qty":"500","unit":"g","priceWholesale":70.0}];
+
+// ════════════════════════════════════════════
+// ════════════════════════════════════════════
+// GOOGLE SHEETS API — ข้อมูลกลางของทุกสาขา
+// ใส่ URL ของ Apps Script ที่ Deploy แล้วตรงนี้
+// ════════════════════════════════════════════
+const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbxXBpru9A66IzC1jYKJp09VeMCWTc1PkwuWVWTvbgYglB61vyXAUQBgY0nshpYtSU6mfg/exec';
+
+// ── ตรวจว่า API ตั้งค่าแล้วหรือยัง ──
+function isApiReady(){
+  return SHEET_API_URL && SHEET_API_URL !== 'PASTE_YOUR_APPS_SCRIPT_URL_HERE';
+}
+
+// ── โหลด SKU จาก Google Sheet ──
+async function loadSKUFromStorage(){
+  if(!isApiReady()){
+    toast('❌ ยังไม่ได้ตั้งค่า Apps Script URL');
+    return [];
+  }
+  try {
+    const res = await fetch(`${SHEET_API_URL}?action=getSKU`, { redirect:'follow' });
+    const json = await res.json();
+    if(json.ok && Array.isArray(json.data) && json.data.length > 0){
+      return json.data; // ใช้จาก Sheet เท่านั้น
+    }
+    toast('❌ โหลดข้อมูลสินค้าไม่สำเร็จ กรุณาลอง Login ใหม่');
+    return [];
+  } catch(e){
+    console.error('loadSKU error:', e);
+    toast('❌ ไม่สามารถเชื่อมต่อ Sheet ได้ กรุณาตรวจสอบอินเตอร์เน็ต');
+    return [];
+  }
+}
+
+// ── บันทึก SKU ลง Google Sheet (Supervisor) ──
+async function saveSKUToStorage(data){
+  setSyncStatus('saving');
+  if(!isApiReady()){ setSyncStatus('error'); toast('❌ ยังไม่ได้ตั้งค่า Apps Script URL'); return false; }
+  try {
+    const res = await fetch(SHEET_API_URL, {
+      method: 'POST', redirect: 'follow',
+      headers: { 'Content-Type': 'text/plain' }, // ใช้ text/plain หลีกเลี่ยง preflight
+      body: JSON.stringify({ action: 'saveSKU', data })
+    });
+    const json = await res.json();
+    if(json.ok){ setSyncStatus('ok'); return true; }
+    throw new Error(json.error);
+  } catch(e){ console.error('saveSKU error:', e); setSyncStatus('error'); return false; }
+}
+
+// ── โหลดออเดอร์จาก Google Sheet ──
+async function loadOrdersFromStorage(){
+  if(!isApiReady()){
+    try { return dedupOrders(JSON.parse(localStorage.getItem('df_orders')||'[]')); } catch(e){ return []; }
+  }
+  try {
+    const branch = session?.role === 'Supervisor' ? '' : (session?.branch?.name || '');
+    const res  = await fetch(`${SHEET_API_URL}?action=getOrders&branch=${encodeURIComponent(branch)}`, { redirect:'follow' });
+    const json = await res.json();
+    if(json.ok && Array.isArray(json.data)) return dedupOrders(json.data);
+  } catch(e){ console.error('loadOrders error:', e); }
+  try { return dedupOrders(JSON.parse(localStorage.getItem('df_orders')||'[]')); } catch(e){ return []; }
+}
+
+// ── บันทึกออเดอร์ลง Google Sheet ──
+async function saveOrdersToStorage(order){
+  // บันทึกลง localStorage พร้อม dedup
+  try {
+    const local = JSON.parse(localStorage.getItem('df_orders') || '[]');
+    // ป้องกัน duplicate — ถ้ามี id เดิมอยู่แล้วไม่ push ซ้ำ
+    if(!local.find(o => o.id === order.id)){
+      local.unshift(order);
+      localStorage.setItem('df_orders', JSON.stringify(local.slice(0, 200)));
+    }
+  } catch(e){}
+
+  if(!isApiReady()) return;
+  // ส่งไป Sheet (fire-and-forget ไม่ await เพื่อไม่ block UX แต่ใช้ race+timeout)
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000); // timeout 15 วิ
+    await fetch(SHEET_API_URL, {
+      method: 'POST', redirect: 'follow',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ action: 'saveOrder', data: order }),
+      signal: controller.signal
+    });
+    clearTimeout(timeout);
+  } catch(e){
+    if(e.name !== 'AbortError') console.error('saveOrder error:', e);
+  }
+}
+
+function setSyncStatus(state){
+  const el = document.getElementById('sync-status');
+  if(!el) return;
+  if(state==='ok'){ el.textContent='✅ บันทึกลง Sheet แล้ว'; el.className='sync-indicator'; }
+  else if(state==='saving'){ el.textContent='⏳ กำลังบันทึก...'; el.className='sync-indicator saving'; }
+  else { el.textContent='❌ บันทึกไม่สำเร็จ'; el.className='sync-indicator error'; }
+}
+
+// ════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════
+let products = JSON.parse(JSON.stringify(SKU_BASE));
+let cart = {};
+let channel = null;
+let payMethod = 'cash';
+let discType = 'baht';
+let session = null;
+let orders = [];
+let orderCnt = 1000;
+const PW = {
+  // รหัสผ่านแยกตามสาขา (WH code)
+  'WH10': '1111',       // อ่อนนุช
+  'WH04': '1234',       // รามคำแหง
+  'WH01': '1111',       // สำนักงานใหญ่ (ใช้รหัสเดียวกับอ่อนนุช)
+  'Supervisor': '9999'  // Supervisor
+};
+const PACKSIZES = ['PACK','PCE','SET','BOTTLE','JAR','ซอง'];
+
+try { orderCnt = parseInt(localStorage.getItem('df_cnt')||'1000'); } catch(e){}
+
+// ════════════════════════════════════════════
+// SESSION PERSISTENCE — คงสถานะเมื่อ refresh
+// ════════════════════════════════════════════
+function saveSession(tab){
+  try {
+    // activeTab ต้องมาจาก parameter เท่านั้น ห้ามดึงจาก df_active_tab เด็ดขาด
+    const safeTab = tab || (session?.role==='Supervisor' ? 'history' : 'pos');
+    // PC ห้าม save tab 'admin' เด็ดขาด
+    const allowedTab = session?.role!=='Supervisor' && safeTab==='admin' ? 'pos' : safeTab;
+    sessionStorage.setItem('df_session', JSON.stringify({
+      ...session,
+      activeTab: allowedTab
+    }));
+  } catch(e){}
+}
+
+function goTab(t){
+  // Guard — PC ห้ามเข้าแท็บ admin เด็ดขาด
+  if(t === 'admin' && session?.role !== 'Supervisor'){
+    t = 'pos';
+  }
+  ['pos','history','admin'].forEach(x=>{
+    const el=document.getElementById(`tc-${x}`);
+    if(el) el.style.display='none';
+    const tab=document.getElementById(`tab-${x}`);
+    if(tab) tab.className='nav-tab';
+  });
+  const tc=document.getElementById(`tc-${t}`);
+  if(tc){ tc.style.display='flex'; tc.style.flexDirection='column'; }
+  const tab=document.getElementById(`tab-${t}`);
+  if(tab) tab.className='nav-tab active';
+  // บันทึก tab ผ่าน saveSession เท่านั้น
+  if(session) saveSession(t);
+  if(t==='history'){ loadOrdersFromStorage().then(o=>{ orders=dedupOrders(o); renderHistory(); }); }
+  if(t==='admin') renderAdmin();
+}
+
+function dedupOrders(arr){
+  // dedup โดยใช้ id เป็น key เก็บแค่ตัวล่าสุด
+  const map = {};
+  arr.forEach(o=>{ if(o&&o.id) map[o.id]=o; });
+  return Object.values(map).sort((a,b)=>new Date(b.date)-new Date(a.date));
+}
+
+// Auto-restore session เมื่อ refresh
+window.addEventListener('DOMContentLoaded', async ()=>{
+  try {
+    const saved = sessionStorage.getItem('df_session');
+    if(!saved) return;
+    const s = JSON.parse(saved);
+    if(!s||!s.role||!s.branch) return;
+
+    // restore session
+    session = s;
+    cart = {}; channel = null;
+
+    showLoading('กำลังกลับสู่ระบบ...', 10);
+
+    const [skuData, orderData] = await Promise.all([
+      loadSKUFromStorage().then(d=>{ setLoading('โหลดสินค้าสำเร็จ ✓', 60); return d; }),
+      loadOrdersFromStorage().then(d=>{ setLoading('โหลดประวัติออเดอร์ ✓', 85); return d; })
+    ]);
+    products = skuData;
+    orders = dedupOrders(orderData);
+
+    setLoading('พร้อมใช้งาน!', 100);
+    await new Promise(r=>setTimeout(r,300));
+    hideLoading();
+
+    document.getElementById('s-login').classList.remove('on');
+    document.getElementById('app').style.display='flex';
+    document.getElementById('ui-branch').textContent = s.role==='Supervisor' ? '🔐 Supervisor' : `${s.branch.name} (${s.branch.code})`;
+    document.getElementById('ui-role').textContent = `👤 ${s.role}`;
+
+    if(s.role==='Supervisor'){
+      document.getElementById('tab-admin').style.display='';
+      document.getElementById('tab-pos').style.display='none';
+      document.getElementById('stats-row').style.display='flex';
+      document.getElementById('hist-branch').disabled=false;
+    } else {
+      document.getElementById('tab-admin').style.display='none';
+      document.getElementById('tab-pos').style.display='';
+      document.getElementById('hist-branch').value = s.branch.name;
+      document.getElementById('hist-branch').disabled=true;
+      document.getElementById('stats-row').style.display='none';
+    }
+
+    // restore แท็บที่ค้างไว้ — เช็ค role ก่อนเสมอ
+    let savedTab = s.activeTab || (s.role==='Supervisor' ? 'history' : 'pos');
+    // PC ห้ามเข้าแท็บ admin เด็ดขาด
+    if(s.role !== 'Supervisor' && savedTab === 'admin') savedTab = 'pos';
+    startClock(); renderProds();
+    goTab(savedTab);
+  } catch(e){ console.error('Session restore error:', e); }
+});
+
+// ════════════════════════════════════════════
+// LOADING SCREEN
+// ════════════════════════════════════════════
+function showLoading(msg='กำลังโหลด...', pct=0){
+  const el=document.getElementById('s-loading');
+  el.style.display='flex';
+  setLoading(msg, pct);
+}
+function setLoading(msg, pct){
+  const msgEl=document.getElementById('loading-msg');
+  const barEl=document.getElementById('loading-bar');
+  if(msgEl) msgEl.textContent=msg;
+  if(barEl) barEl.style.width=pct+'%';
+}
+function hideLoading(){
+  document.getElementById('s-loading').style.display='none';
+}
+
+// ════════════════════════════════════════════
+// AUTH
+// ════════════════════════════════════════════
+function toggleSupPanel(){
+  const p = document.getElementById('sup-panel');
+  p.style.display = p.style.display==='block' ? 'none' : 'block';
+}
+document.addEventListener('click', e=>{
+  if(!e.target.closest('#sup-panel') && !e.target.closest('#sup-gear'))
+    document.getElementById('sup-panel').style.display='none';
+});
+
+async function login(role){
+  const pwEl = document.getElementById(role==='PC'?'pc-pw':'sup-pw');
+  const errEl = document.getElementById(role==='PC'?'pc-err':'sup-err');
+
+  let branchCode='ALL', branchName='ทุกสาขา';
+  if(role==='PC'){
+    const [c,n] = document.getElementById('pc-branch').value.split('|');
+    branchCode=c; branchName=n;
+  }
+
+  // เช็ครหัสผ่านตามสาขา (PC) หรือ Supervisor
+  const expectedPW = role==='Supervisor' ? PW['Supervisor'] : (PW[branchCode] || '');
+  if(pwEl.value !== expectedPW){ errEl.style.display='block'; pwEl.value=''; pwEl.focus(); return; }
+  errEl.style.display='none';
+
+  // Reset state ทุกครั้งที่ login ใหม่ — ป้องกันตะกร้าค้าง
+  cart = {}; channel = null; itemDiscounts = {};
+  document.getElementById('disc-val').value='';
+
+  session = { role, branch:{code:branchCode, name:branchName} };
+
+  // ── แสดง Loading Screen ──
+  document.getElementById('s-login').classList.remove('on');
+  showLoading('กำลังโหลดข้อมูลสินค้า...', 20);
+
+  // Reset products ก่อนเสมอ — ไม่ใช้ข้อมูลเก่าจาก session ก่อนหน้า
+  products = JSON.parse(JSON.stringify(SKU_BASE));
+  orders = [];
+
+  // โหลด SKU และ Orders ใหม่จาก Sheet ทุกครั้ง
+  const [skuData, orderData] = await Promise.all([
+    loadSKUFromStorage().then(d=>{ setLoading('โหลดสินค้าสำเร็จ ✓', 60); return d; }),
+    loadOrdersFromStorage().then(d=>{ setLoading('โหลดประวัติออเดอร์สำเร็จ ✓', 85); return d; })
+  ]);
+  products = skuData;
+  orders   = dedupOrders(orderData);
+
+  setLoading('พร้อมใช้งาน!', 100);
+  await new Promise(r=>setTimeout(r, 380));
+  hideLoading();
+
+  document.getElementById('app').style.display='flex';
+  document.getElementById('ui-branch').textContent = role==='Supervisor' ? '🔐 Supervisor' : `${branchName} (${branchCode})`;
+  document.getElementById('ui-role').textContent = `👤 ${role}`;
+  saveSession(); // บันทึก session ไว้ restore ตอน refresh
+
+  if(role==='Supervisor'){
+    document.getElementById('tab-admin').style.display='';
+    document.getElementById('tab-pos').style.display='none';
+    document.getElementById('stats-row').style.display='flex';
+    document.getElementById('hist-branch').disabled=false;
+    goTab('history');
+  } else {
+    document.getElementById('tab-admin').style.display='none';
+    document.getElementById('tab-pos').style.display='';
+    document.getElementById('hist-branch').value = branchName;
+    document.getElementById('hist-branch').disabled=true;
+    document.getElementById('stats-row').style.display='none';
+    goTab('pos');
+  }
+
+  startClock();
+  renderProds();
+  renderHistory();
+}
+
+function logout(){
+  session=null; cart={}; channel=null; products=[]; orders=[];
+
+  // ล้าง sessionStorage ทั้งหมด ป้องกัน Supervisor session ค้างให้ PC
+  try { sessionStorage.clear(); } catch(e){}
+
+  // Reset UI ทั้งหมดให้กลับสู่สถานะเริ่มต้น
+  document.getElementById('app').style.display='none';
+  document.getElementById('tab-admin').style.display='none';
+  document.getElementById('tab-pos').style.display='';
+  document.getElementById('tc-admin').style.display='none';
+  document.getElementById('stats-row').style.display='none';
+
+  // Reset แท็บกลับ POS
+  ['pos','history','admin'].forEach(x=>{
+    const el=document.getElementById(`tc-${x}`);
+    if(el) el.style.display='none';
+    const tab=document.getElementById(`tab-${x}`);
+    if(tab) tab.className='nav-tab';
+  });
+  const posTab=document.getElementById('tab-pos');
+  if(posTab) posTab.className='nav-tab active';
+
+  document.getElementById('s-login').classList.add('on');
+  document.getElementById('pc-pw').value='';
+  document.getElementById('sup-pw').value='';
+}
+
+function startClock(){
+  const t=()=>{ document.getElementById('ui-clock').textContent=new Date().toLocaleTimeString('th-TH'); };
+  t(); setInterval(t,1000);
+}
+
+// ════════════════════════════════════════════
+// TABS
+// ════════════════════════════════════════════
+
+
+// ════════════════════════════════════════════
+// CHANNEL
+// ════════════════════════════════════════════
+function setChannel(ch){
+  channel=ch;
+  ['grab','line','cash'].forEach(c=>document.getElementById(`ch-${c}`).className='ch-btn');
+  const refWrap=document.getElementById('ref-wrap');
+  const refIn=document.getElementById('order-ref');
+  if(ch==='Grab'){
+    document.getElementById('ch-grab').className='ch-btn sel-grab';
+    refWrap.style.display='flex';
+    document.getElementById('ref-label').textContent='เลขออเดอร์ Grab:';
+    refIn.value=''; refIn.focus();
+  } else if(ch==='Lineman'){
+    document.getElementById('ch-line').className='ch-btn sel-line';
+    refWrap.style.display='flex';
+    document.getElementById('ref-label').textContent='เลขออเดอร์ Line Man:';
+    refIn.value=''; refIn.focus();
+  } else {
+    document.getElementById('ch-cash').className='ch-btn sel-cash';
+    refWrap.style.display='none';
+  }
+  // เปลี่ยนราคาตาม channel → re-render รายการสินค้าและตะกร้า
+  renderProds();
+  renderCartBody();
+  renderCartFt();
+  checkRefLock();
+}
+
+// ── ราคาที่ใช้จริง ขึ้นอยู่กับ channel ──
+// Grab / Lineman → ราคาปลีก (price)
+// Walk-in (Cash)  → ราคาส่ง (priceWholesale)
+function getActivePrice(p){
+  if(channel === 'Cash') return p.priceWholesale || p.price;
+  return p.price;
+}
+
+function isLocked(){
+  if(!channel) return true;
+  if((channel==='Grab'||channel==='Lineman') && !document.getElementById('order-ref').value.trim()) return true;
+  return false;
+}
+
+function checkRefLock(){
+  const locked=isLocked();
+  // prod-locked ถูกสร้างใหม่ทุกครั้งใน renderProds ต้อง query ใหม่เสมอ
+  const lockEl=document.getElementById('prod-locked');
+  const st=document.getElementById('ch-status');
+  if(!locked){
+    if(lockEl) lockEl.style.display='none';
+    if(st){ st.textContent=`✅ ${channel==='Cash'?'Walk-in':channel} — เลือกสินค้าได้เลย`; st.className='ch-status ok'; }
+  } else {
+    if(lockEl){
+      lockEl.style.display='flex';
+      lockEl.innerHTML = channel && channel!=='Cash'
+        ? `<div class="prod-locked-icon">📝</div><div class="prod-locked-msg">ใส่เลขออเดอร์ ${channel} ก่อน</div><div class="prod-locked-sub">กรอกในช่องทางขวามือ</div>`
+        : `<div class="prod-locked-icon">🔒</div><div class="prod-locked-msg">เลือกช่องทางออเดอร์ก่อน</div><div class="prod-locked-sub">Grab / Line Man / Walk-in</div>`;
+    }
+    if(st){ st.textContent=channel&&channel!=='Cash'?`⚠️ ใส่เลขออเดอร์ ${channel} ก่อน`:'⚠️ ยังไม่ได้เลือกช่องทาง'; st.className='ch-status'; }
+  }
+  renderCartFt();
+}
+
+// ════════════════════════════════════════════
+// PRODUCTS
+// ════════════════════════════════════════════
+function renderProds(){
+  const q=document.getElementById('srch').value.toLowerCase().trim();
+  const list=q?products.filter(p=>p.name.toLowerCase().includes(q)||p.id.toLowerCase().includes(q)):products;
+  document.getElementById('srch-cnt').textContent=`${list.length} รายการ`;
+  const el=document.getElementById('prod-list');
+
+  el.innerHTML=`<div id="prod-locked" class="prod-locked" style="${isLocked()?'':'display:none'}">
+    <div class="prod-locked-icon">🔒</div>
+    <div class="prod-locked-msg">เลือกช่องทางออเดอร์ก่อน</div>
+    <div class="prod-locked-sub">Grab / Line Man / Walk-in</div>
+  </div>`;
+
+  if(!list.length){
+    el.insertAdjacentHTML('beforeend','<div style="text-align:center;padding:48px;color:var(--dim);font-size:16px">ไม่พบสินค้า</div>');
+    return;
+  }
+  el.insertAdjacentHTML('beforeend', list.map(p=>{
+    const q2=cart[p.id]||0;
+    const activePrice = getActivePrice(p);
+    const priceLabel = channel==='Cash'
+      ? `฿${activePrice.toLocaleString()} <span style="font-size:10px;color:var(--muted)">(ส่ง)</span>`
+      : `฿${activePrice.toLocaleString()}`;
+    return `<div class="prod-item ${q2>0?'in-cart':''}" id="pi-${p.id}" onclick="tapProd('${p.id}')">
+      <span class="pi-id">${p.id}</span>
+      <div class="pi-info">
+        <div class="pi-name">${p.name}</div>
+        <div class="pi-uom">${p.uom}</div>
+      </div>
+      <span class="pi-price">${priceLabel}</span>
+      <div class="qty-ctrl" onclick="event.stopPropagation()">
+        <button class="qty-btn" onclick="chgQty('${p.id}',-1)">−</button>
+        <span class="qty-num" id="qn-${p.id}">${q2||''}</span>
+        <button class="qty-btn" onclick="chgQty('${p.id}',1)">+</button>
+      </div>
+    </div>`;
+  }).join(''));
+}
+
+function tapProd(id){
+  if(isLocked()) return;
+  cart[id]=(cart[id]||0)+1;
+  upProdRow(id); renderCartBody(); renderCartFt();
+}
+function chgQty(id,d){
+  if(isLocked()&&d>0) return;
+  const n=Math.max(0,(cart[id]||0)+d);
+  if(n===0) delete cart[id]; else cart[id]=n;
+  // ถ้า qty เป็น 0 ต้อง re-render รายการสินค้าด้วยเพื่อเอา in-cart class ออก
+  if(n===0) renderProds(); else upProdRow(id);
+  renderCartBody(); renderCartFt();
+}
+function upProdRow(id){
+  const q=cart[id]||0;
+  const r=document.getElementById(`pi-${id}`);
+  if(r) r.className=`prod-item ${q>0?'in-cart':''}`;
+  const qn=document.getElementById(`qn-${id}`);
+  if(qn) qn.textContent=q||'';
+}
+
+// ════════════════════════════════════════════
+// CART
+// ════════════════════════════════════════════
+// itemDiscounts[id] = { type: 'baht'|'pct'|'free', value: number }
+let itemDiscounts = {};
+
+function getItemDiscAmt(id, unitPrice, qty){
+  const d = itemDiscounts[id];
+  if(!d) return 0;
+  if(d.type === 'free') return unitPrice * qty;
+  if(d.type === 'baht') return Math.min(d.value||0, unitPrice * qty);
+  if(d.type === 'pct') return Math.round(unitPrice * qty * (d.value||0) / 100);
+  return 0;
+}
+
+function renderCartBody(){
+  const ids=Object.keys(cart);
+  const el=document.getElementById('cart-body');
+  if(!ids.length){
+    el.innerHTML=`<div class="cart-empty"><div style="font-size:40px;opacity:.12">🛒</div><div>ยังไม่มีสินค้าในตะกร้า</div></div>`;
+    return;
+  }
+  el.innerHTML=ids.map(id=>{
+    const p=products.find(x=>x.id===id); if(!p) return '';
+    const ap = getActivePrice(p);
+    const subtotal = ap * cart[id];
+    const discAmt = getItemDiscAmt(id, ap, cart[id]);
+    const finalPrice = subtotal - discAmt;
+    const d = itemDiscounts[id];
+    const isFree = d?.type === 'free';
+    const hasDisc = discAmt > 0;
+
+    // badge label
+    let badgeLabel, badgeClass;
+    if(isFree){ badgeLabel='🎁 แถม'; badgeClass='ci-disc-badge is-free'; }
+    else if(hasDisc){ badgeLabel=`✂️ ลด${d.type==='pct'?d.value+'%':'฿'+discAmt.toLocaleString()}`; badgeClass='ci-disc-badge has-disc'; }
+    else { badgeLabel='＋ ส่วนลด/แถม'; badgeClass='ci-disc-badge'; }
+
+    return `<div style="border:1.5px solid var(--border2);border-radius:var(--r2);background:var(--surface);margin-bottom:4px;overflow:hidden" id="ci-wrap-${id}">
+      <div class="ci" id="ci-${id}" style="margin:0;border:none;border-radius:0;box-shadow:none">
+        <div class="ci-info">
+          <div class="ci-id">${p.id}</div>
+          <div class="ci-name">${isFree?'🎁 ':''}<b>${p.name}</b></div>
+          <div class="ci-unit">${p.uom} · ฿${ap.toLocaleString()}/ชิ้น</div>
+        </div>
+        <div class="ci-right">
+          <div class="ci-qrow">
+            <button class="cq-btn" onclick="chgQty('${id}',-1)">−</button>
+            <span class="ci-qnum">${cart[id]}</span>
+            <button class="cq-btn plus" onclick="chgQty('${id}',1)">+</button>
+          </div>
+          <div style="text-align:right">
+            ${hasDisc?`<div style="text-decoration:line-through;font-size:11px;color:var(--dim)">฿${subtotal.toLocaleString()}</div>`:''}
+            <div class="ci-total" style="${isFree?'color:var(--green-dk)':''}">${isFree?'฿0':`฿${finalPrice.toLocaleString()}`}</div>
+            <span class="${badgeClass}" onclick="toggleDiscPopup('${id}')">${badgeLabel}</span>
+          </div>
+        </div>
+      </div>
+      <div id="disc-popup-${id}" style="display:none;padding:0 10px 10px"></div>
+    </div>`;
+  }).join('');
+}
+
+function renderDiscPopup(id){
+  const popup = document.getElementById(`disc-popup-${id}`);
+  if(!popup) return;
+  // ตั้ง display block ก่อนเสมอ (Bug 1 fix)
+  popup.style.display = 'block';
+
+  const d = itemDiscounts[id] || {};
+  const isFree = d.type === 'free';
+
+  popup.innerHTML = `<div style="background:rgba(255,237,213,0.97);border:1.5px solid var(--orange);border-radius:var(--r);padding:10px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <span style="font-size:13px;font-weight:700;color:var(--orange)">✂️ ส่วนลด / แถม</span>
+      <button onclick="closeDiscPopup('${id}')" style="width:22px;height:22px;border-radius:50%;border:1px solid var(--border);background:#fff;cursor:pointer;font-size:13px;color:var(--muted)">✕</button>
+    </div>
+    <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:${d.type?'8px':'0'}">
+      <button class="ci-disc-type-btn ${d.type==='baht'?'active-disc':''}" onclick="setItemDiscType('${id}','baht')">฿ บาท</button>
+      <button class="ci-disc-type-btn ${d.type==='pct'?'active-disc':''}" onclick="setItemDiscType('${id}','pct')">% เปอร์เซ็น</button>
+      <button class="ci-disc-type-btn ${isFree?'active-free':''}" onclick="setItemDiscType('${id}','free')">🎁 แถมฟรี</button>
+      ${d.type?`<button class="ci-disc-type-btn" onclick="clearItemDisc('${id}')" style="color:var(--red)">✕ ล้าง</button>`:''}
+    </div>
+    ${!isFree && d.type ? `<div style="display:flex;align-items:center;gap:6px">
+      <input class="ci-disc-input" id="ci-dval-${id}" type="number" min="0"
+        value="${d.value||''}" placeholder="${d.type==='pct'?'10':'50'}"
+        oninput="applyItemDisc('${id}')">
+      <span style="font-size:14px;color:var(--muted);font-weight:600">${d.type==='pct'?'%':'฿'}</span>
+    </div>
+    <button onclick="confirmDiscPopup('${id}')"
+      style="width:100%;margin-top:8px;padding:8px;background:var(--green-btn);color:#fff;border:none;border-radius:var(--r);font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer">
+      ✅ ตกลง
+    </button>` : isFree ? `<div style="font-size:13px;color:var(--green-dk);font-weight:700;padding:4px 0">🎁 แถมฟรี ราคา ฿0</div>
+    <button onclick="confirmDiscPopup('${id}')"
+      style="width:100%;margin-top:4px;padding:8px;background:var(--green-btn);color:#fff;border:none;border-radius:var(--r);font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer">
+      ✅ ตกลง
+    </button>` : ''}
+  </div>`;
+}
+
+function toggleDiscPopup(id){
+  const popup = document.getElementById(`disc-popup-${id}`);
+  if(!popup) return;
+
+  const isOpen = popup.style.display !== 'none';
+
+  // ปิด popup อื่นทั้งหมดก่อน
+  Object.keys(cart).forEach(otherId => {
+    if(otherId !== id){
+      const other = document.getElementById(`disc-popup-${otherId}`);
+      if(other){ other.style.display='none'; other.innerHTML=''; }
+    }
+  });
+
+  if(isOpen){
+    popup.style.display = 'none';
+    popup.innerHTML = '';
+    return;
+  }
+
+  renderDiscPopup(id); // จะ set display:block เองใน renderDiscPopup
+}
+
+function setItemDiscType(id, type){
+  if(!itemDiscounts[id]) itemDiscounts[id] = {};
+  itemDiscounts[id].type = type;
+  itemDiscounts[id].value = 0;
+  renderDiscPopup(id); // re-render โดยไม่ toggle — popup ยังเปิดอยู่
+  renderCartFt();
+}
+
+function confirmDiscPopup(id){
+  closeDiscPopup(id);
+  renderCartBody(); renderCartFt();
+}
+
+function closeDiscPopup(id){
+  const popup = document.getElementById(`disc-popup-${id}`);
+  if(popup){ popup.style.display='none'; popup.innerHTML=''; }
+}
+
+function applyItemDisc(id){
+  if(!itemDiscounts[id]) itemDiscounts[id]={};
+  const val = parseFloat(document.getElementById(`ci-dval-${id}`)?.value)||0;
+  itemDiscounts[id].value = val;
+  renderCartFt();
+}
+
+function clearItemDisc(id){
+  delete itemDiscounts[id];
+  closeDiscPopup(id);
+  renderCartBody(); renderCartFt();
+}
+
+function getDisc(sub){
+  const v=parseFloat(document.getElementById('disc-val').value)||0;
+  if(!v) return 0;
+  return discType==='baht'?Math.min(v,sub):Math.round(sub*v/100);
+}
+
+function getSub(){
+  return Object.keys(cart).reduce((s,id)=>{
+    const p=products.find(x=>x.id===id); if(!p) return s;
+    const ap = getActivePrice(p);
+    const subtotal = ap * cart[id];
+    const discAmt = getItemDiscAmt(id, ap, cart[id]);
+    return s + subtotal - discAmt;
+  },0);
+}
+function getQty(){ return Object.values(cart).reduce((s,v)=>s+v,0); }
+
+function renderCartFt(){
+  const ids=Object.keys(cart);
+  const sub=getSub(); const disc=getDisc(sub); const total=sub-disc;
+  document.getElementById('cart-badge').textContent=ids.length;
+  document.getElementById('cart-meta').textContent=`${ids.length} รายการ · ${getQty()} ชิ้น`;
+  document.getElementById('cart-total').textContent=`฿${total.toLocaleString()}`;
+  const da=document.getElementById('disc-applied');
+  if(disc>0){ da.style.display=''; da.textContent=`ส่วนลด ฿${disc.toLocaleString()} (ราคาเต็ม ฿${sub.toLocaleString()})`; }
+  else da.style.display='none';
+  document.getElementById('btn-checkout').disabled=ids.length===0||isLocked();
+}
+
+function clearCart(){
+  cart={}; itemDiscounts={};
+  renderProds(); renderCartBody(); renderCartFt();
+}
+function setPay(m){
+  payMethod=m;
+  ['cash','transfer'].forEach(x=>document.getElementById(`pay-${x}`).className='pay-btn');
+  document.getElementById(`pay-${m}`).classList.add(`sel-${m}`);
+}
+function setDiscType(t){
+  discType=t;
+  document.getElementById('disc-b').className='disc-type-btn'+(t==='baht'?' active':'');
+  document.getElementById('disc-p').className='disc-type-btn'+(t==='pct'?' active':'');
+  document.getElementById('disc-sfx').textContent=t==='baht'?'฿':'%';
+  renderCartFt();
+}
+
+// ── Refresh ราคาจาก Sheet ทันที ──
+async function refreshSKU(){
+  const btn = document.querySelector('[onclick="refreshSKU()"]');
+  if(btn){ btn.textContent='⏳ กำลังโหลด...'; btn.disabled=true; }
+  try {
+    const fresh = await loadSKUFromStorage();
+    if(fresh && fresh.length > 0){
+      products = fresh;
+      renderProds();
+      renderCartBody();
+      renderCartFt();
+      toast('✅ โหลดราคาล่าสุดแล้ว');
+    }
+  } catch(e){ toast('❌ โหลดไม่สำเร็จ'); }
+  if(btn){ btn.textContent='🔄 ราคาล่าสุด'; btn.disabled=false; }
+}
+function openCheckout(){
+  const ids=Object.keys(cart);
+  const sub=getSub(); const disc=getDisc(sub); const total=sub-disc;
+  const ref=document.getElementById('order-ref')?.value.trim()||'';
+  const now=new Date();
+  const chCls={Grab:'ch-grab',Lineman:'ch-line',Cash:'ch-cash'}[channel];
+  const payLbl={cash:'เงินสด',transfer:'โอน / QR'}[payMethod];
+  const discLbl=disc>0?(discType==='baht'?`฿${disc.toLocaleString()}`:`${document.getElementById('disc-val').value}% = ฿${disc.toLocaleString()}`):'ไม่มี';
+
+  document.getElementById('checkout-body').innerHTML=`
+    <div class="receipt">
+      <div class="rec-channel-row">
+        <span class="ch-badge ${chCls}">${channel}</span>
+        ${ref?`<b style="font-size:14px">#${ref}</b>`:''}
+        <span style="font-size:13px;color:var(--muted)">${now.toLocaleString('th-TH')}</span>
+      </div>
+      <div>
+        ${ids.map(id=>{
+          const p=products.find(x=>x.id===id); if(!p) return '';
+          const ap = getActivePrice(p);
+          const rawSub = ap * cart[id];
+          const itemDisc = getItemDiscAmt(id, ap, cart[id]);
+          const finalSub = rawSub - itemDisc;
+          const isFree = itemDiscounts[id]?.type === 'free';
+          const d = itemDiscounts[id];
+          const discNote = isFree ? ' 🎁 แถม'
+            : itemDisc > 0 ? ` ลด${d.type==='pct'?d.value+'%':'฿'+itemDisc.toLocaleString()}`
+            : '';
+          return `<div class="ri">
+            <div style="flex:1">
+              <div class="ri-name">${isFree?'🎁 ':''}${p.name}${discNote?`<span style="font-size:11px;color:var(--orange);font-weight:600"> ${discNote}</span>`:''}</div>
+              <div class="ri-code">${p.id} · ${p.uom} · ฿${ap.toLocaleString()}/ชิ้น</div>
+            </div>
+            <div class="ri-qty" style="margin:0 10px">×${cart[id]}</div>
+            <div style="text-align:right">
+              ${itemDisc>0?`<div style="text-decoration:line-through;font-size:11px;color:var(--dim)">฿${rawSub.toLocaleString()}</div>`:''}
+              <div class="ri-sub" style="${isFree?'color:var(--green-dk)':''}">${isFree?'แถม ฿0':`฿${finalSub.toLocaleString()}`}</div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+      <div class="rec-line"></div>
+      <div class="rec-row"><span style="color:var(--muted)">ราคาก่อนลด</span><span style="font-weight:600">฿${sub.toLocaleString()}</span></div>
+      <div class="rec-row"><span style="color:var(--orange)">ส่วนลดท้ายออเดอร์</span><span style="color:var(--orange);font-weight:700">${discLbl}</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;background:var(--green-l);border:2px solid var(--green-m);border-radius:var(--r);padding:10px 14px;margin-top:8px">
+        <span style="font-size:16px;font-weight:800;color:var(--green-dk)">ยอดสุทธิ</span>
+        <span style="font-size:24px;font-weight:800;color:var(--green-dk)">฿${total.toLocaleString()}</span>
+      </div>
+      <div class="rec-row" style="margin-top:8px"><span style="color:var(--muted)">ชำระด้วย</span><span style="font-weight:700">${payLbl}</span></div>
+    </div>`;
+  document.getElementById('modal-checkout').style.display='flex';
+}
+
+async function confirmOrder(){
+  // ── ป้องกันกดซ้ำ: disable ปุ่มทันทีและแสดง loading ──
+  const confirmBtn = document.querySelector('#modal-checkout .btn-primary');
+  const backBtn    = document.querySelector('#modal-checkout .btn-ghost');
+  if(confirmBtn){
+    if(confirmBtn.disabled) return; // ถ้ากำลัง process อยู่ ไม่ทำอะไร
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = '⏳ กำลังบันทึก...';
+  }
+  if(backBtn) backBtn.disabled = true;
+
+  try {
+    const ids = Object.keys(cart);
+    const now = new Date();
+    orderCnt++; localStorage.setItem('df_cnt', orderCnt);
+
+    // ใช้ราคาที่โหลดไว้แล้วในหน้า checkout — ไม่ดึง Sheet ซ้ำ (ลด delay 7-10 วิ)
+    // ราคาได้รับการ update ล่าสุดตอน openCheckout แล้ว
+    const sub   = getSub();
+    const disc  = getDisc(sub);
+    const total = sub - disc;
+
+    const ref   = document.getElementById('order-ref')?.value.trim() || '';
+    const items = ids.map(id => {
+      const p = products.find(x => x.id === id);
+      const ap = getActivePrice(p);
+      const rawSubtotal = ap * cart[id];
+      const itemDisc = getItemDiscAmt(id, ap, cart[id]);
+      const isFree = itemDiscounts[id]?.type === 'free';
+      const discType = itemDiscounts[id]?.type || '';
+      return {
+        ...p,
+        price: ap,
+        qty: cart[id],
+        subtotal: rawSubtotal - itemDisc,
+        itemDisc: itemDisc,
+        discType: discType,
+        isFree: isFree,
+        priceType: channel === 'Cash' ? 'wholesale' : 'retail'
+      };
+    });
+
+    const order = {
+      id: `DF-${orderCnt}`, date: now.toISOString(),
+      channel, orderRef: ref, branch: session.branch.name, branchCode: session.branch.code,
+      payMethod, discType, discVal: parseFloat(document.getElementById('disc-val').value) || 0,
+      discAmt: disc, subtotal: sub, total, items, user: session.role
+    };
+
+    // บันทึกใน memory ก่อน dedup ทันที
+    orders = dedupOrders([order, ...orders]);
+
+    // บันทึกลง localStorage + ส่ง Sheet (รอจริง เพื่อให้ Sheet ได้ข้อมูล)
+    await saveOrdersToStorage(order);
+
+    // reset ปุ่มก่อน closeM (Bug 3 fix — ต้อง reset ก่อน modal ปิด)
+    if(confirmBtn){ confirmBtn.disabled=false; confirmBtn.textContent='✅ ยืนยันออเดอร์'; }
+    if(backBtn) backBtn.disabled=false;
+
+    closeM('modal-checkout');
+    showDone(order);
+  } catch(e) {
+    console.error('confirmOrder error:', e);
+    toast('❌ เกิดข้อผิดพลาด กรุณาลองใหม่');
+    // คืนสถานะปุ่ม
+    if(confirmBtn){ confirmBtn.disabled = false; confirmBtn.textContent = '✅ ยืนยันออเดอร์'; }
+    if(backBtn) backBtn.disabled = false;
+  }
+}
+
+function showDone(order){
+  const sap=buildSAP(order);
+  const chCls={Grab:'ch-grab',Lineman:'ch-line',Cash:'ch-cash'}[order.channel];
+  const payLbl={cash:'เงินสด',transfer:'โอน / QR'}[order.payMethod];
+
+  document.getElementById('done-body').innerHTML=`
+    <div style="text-align:center;padding:14px 0 20px">
+      <div style="font-size:40px;margin-bottom:8px">✅</div>
+      <div style="font-size:17px;font-weight:800;color:var(--green-dk)">${order.id}</div>
+      <div style="font-size:26px;font-weight:800;color:var(--green-dk);margin:6px 0">฿${order.total.toLocaleString()}</div>
+      ${order.discAmt>0?`<div style="font-size:14px;color:var(--orange);font-weight:600">ส่วนลด ฿${order.discAmt.toLocaleString()} · ราคาเต็ม ฿${order.subtotal.toLocaleString()}</div>`:''}
+      <div style="display:flex;gap:8px;justify-content:center;margin-top:10px;flex-wrap:wrap">
+        <span class="ch-badge ${chCls}">${order.channel}</span>
+        <span style="font-size:14px;color:var(--muted);font-weight:600">${payLbl}</span>
+        ${order.orderRef?`<b style="font-size:14px">#${order.orderRef}</b>`:''}
+      </div>
+    </div>
+    ${sapBlock(sap, `${order.channel}${order.orderRef?' #'+order.orderRef:''}`)}
+    <div class="print-wrap">
+      <button class="btn-print" onclick="printReceipt('${order.id}')">🖨️ พิมพ์ใบเสร็จ (80mm)</button>
+    </div>
+    <div style="margin-top:10px;padding:9px 12px;background:var(--surface2);border-radius:var(--r);font-size:13px;color:var(--muted);line-height:1.8;border:1px solid var(--border)">
+      <b>สาขา:</b> ${order.branch} (${order.branchCode}) &nbsp;·&nbsp; <b>วันเวลา:</b> ${new Date(order.date).toLocaleString('th-TH')}
+    </div>`;
+
+  document.getElementById('modal-done').style.display='flex';
+  clearCart();
+  document.getElementById('disc-val').value='';
+  renderHistory();
+}
+
+// SAP format — header + data rows (Item No.|Whse|Quantity|UoM Code|Gross Price)
+function buildSAP(o){
+  const header = 'Item No.\tWhse\tQuantity\tUoM Code\tGross Price\tDiscount %\tGross Total (LC)';
+  const rows = o.items.map(i=>{
+    const grossPrice = i.price; // ราคาเต็มก่อนลดเสมอ
+    const isFree = i.isFree || (i.itemDisc > 0 && i.subtotal === 0);
+    let discPct = '';
+    let grossTotal = '';
+
+    if(isFree){
+      // แถม → Discount % = 100
+      discPct = '100';
+    } else if(i.itemDisc > 0){
+      const rawSubtotal = grossPrice * i.qty;
+      const finalSubtotal = rawSubtotal - i.itemDisc;
+      if(i.discType === 'pct'){
+        // ลด % → Discount %
+        discPct = String(Math.round((i.itemDisc / rawSubtotal) * 100 * 100) / 100);
+      } else {
+        // ลดบาท → Gross Total (LC) = ยอดหลังลด
+        grossTotal = String(finalSubtotal.toFixed(2));
+      }
+    }
+    return `${i.id}\t${o.branchCode}\t${i.qty}\t${i.uom}\t${grossPrice}\t${discPct}\t${grossTotal}`;
+  });
+  return [header, ...rows].join('\n');
+}
+
+// สร้าง SAP section HTML — ใช้ textarea ให้คลุมดำ Ctrl+C ได้เลย ไม่มีปัญหา clipboard
+function sapBlock(sap, remark){
+  const uid = 'sap_'+Math.random().toString(36).slice(2,8);
+  return `<div class="sap-wrap">
+    <div class="sap-hd">
+      <div>
+        <div class="sap-label">📋 SAP SO Format</div>
+        <div class="sap-note">Item No. | Whse | จำนวน | UoM | ราคา${remark?' · Remark: '+remark:''}</div>
+      </div>
+      <button class="btn-copy" onclick="selectSAP('${uid}',this)">📋 คลุมดำ+Copy</button>
+    </div>
+    <div class="sap-select-hint">👆 กดปุ่มเพื่อเลือกทั้งหมด แล้ว Ctrl+C → วางใน SAP ได้เลย</div>
+    <textarea class="sap-textarea" id="${uid}" readonly onclick="this.select()">${sap}</textarea>
+  </div>`;
+}
+
+function selectSAP(id, btn){
+  const ta = document.getElementById(id);
+  if(!ta) return;
+  ta.select();
+  ta.setSelectionRange(0, 99999);
+  try {
+    document.execCommand('copy');
+    btn.textContent='✅ คัดลอกแล้ว!'; btn.classList.add('ok');
+    setTimeout(()=>{ btn.textContent='📋 คลุมดำ+Copy'; btn.classList.remove('ok'); }, 2200);
+    toast('✅ Copy SAP format สำเร็จ — วางใน SAP ได้เลย');
+  } catch(e){
+    toast('คลุมดำข้อความแล้ว Ctrl+C เพื่อ Copy');
+  }
+}
+
+// ════════════════════════════════════════════
+// PRINT RECEIPT — กระดาษขาว หมึกดำ 80mm + โลโก้ + header
+// ════════════════════════════════════════════
+function printReceipt(orderId){
+  const order=orders.find(o=>o.id===orderId);
+  if(!order){ toast('ไม่พบออเดอร์นี้'); return; }
+  if(order.status==='cancelled'){ toast('ออเดอร์นี้ถูกยกเลิกแล้ว'); return; }
+
+  // ── แก้บัค 3: normalize ตัวเลขให้ถูกต้องทั้งหมดก่อนพิมพ์ ──
+  // กรณีข้อมูลมาจาก Sheet อาจเป็น string หรือ NaN
+  const safeOrder = {
+    ...order,
+    subtotal: parseFloat(order.subtotal) || 0,
+    total:    parseFloat(order.total)    || 0,
+    discAmt:  parseFloat(order.discAmt)  || 0,
+    items: (order.items || []).map(i => {
+      const price    = parseFloat(i.price)    || 0;
+      const qty      = parseInt(i.qty)        || 0;
+      const subtotal = parseFloat(i.subtotal) || (price * qty); // คำนวณใหม่ถ้า subtotal ผิด
+      return { ...i, price, qty, subtotal };
+    })
+  };
+  // ตรวจสอบ subtotal รวมว่าตรงกัน ถ้าไม่ตรงคำนวณใหม่
+  const computedSub = safeOrder.items.reduce((s,i) => s + i.subtotal, 0);
+  if(Math.abs(safeOrder.subtotal - computedSub) > 1){
+    safeOrder.subtotal = computedSub;
+    safeOrder.total    = computedSub - safeOrder.discAmt;
+  }
+
+  const d=new Date(safeOrder.date);
+  const payLbl={cash:'เงินสด',transfer:'โอน / QR'}[safeOrder.payMethod];
+  const discLbl=safeOrder.discAmt>0
+    ?(safeOrder.discType==='baht'?`฿${safeOrder.discAmt.toLocaleString()}`:`${safeOrder.discVal}% (฿${safeOrder.discAmt.toLocaleString()})`)
+    :'-';
+  const thDate = d.toLocaleDateString('th-TH',{year:'numeric',month:'2-digit',day:'2-digit'});
+  const thTime = d.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+
+  const logoSVG=`<svg viewBox="0 0 160 80" width="120" height="60" xmlns="http://www.w3.org/2000/svg">
+    <rect width="160" height="80" rx="6" fill="#000"/>
+    <text x="80" y="30" font-family="Sarabun,Arial" font-size="24" font-weight="800" fill="#fff" text-anchor="middle">Delish</text>
+    <text x="80" y="58" font-family="Sarabun,Arial" font-size="24" font-weight="800" fill="#fff" text-anchor="middle">Foods</text>
+    <circle cx="92" cy="20" r="2" fill="#fff"/>
+  </svg>`;
+
+  const html=`<!DOCTYPE html><html><head>
+<meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Sarabun',Arial,sans-serif;font-size:9.5pt;color:#000;background:#fff;
+       padding:5mm 6mm;width:210mm;max-width:210mm}
+  .logo-wrap{text-align:center;margin-bottom:6px}
+  .co-name{font-size:10pt;font-weight:800;text-align:center;line-height:1.4}
+  .co-addr{font-size:8.5pt;color:#333;text-align:center;line-height:1.6;margin-top:2px}
+  .title{font-size:14pt;font-weight:800;text-align:center;margin:8px 0 6px;letter-spacing:1px}
+  .divider{border-top:1px dashed #999;margin:4px 0}
+  .divider-solid{border-top:1.5px solid #000;margin:5px 0}
+  .info-grid{display:flex;justify-content:space-between;font-size:8.5pt;margin:4px 0}
+  .info-label{color:#555}
+  .channel-badge{display:inline-block;background:#000;color:#fff;padding:1px 8px;border-radius:3px;font-size:8pt;font-weight:700;margin:3px 0}
+  table{width:100%;border-collapse:collapse;margin:4px 0}
+  th{font-size:8.5pt;font-weight:700;padding:4px 3px;border-top:1.5px solid #000;border-bottom:1px solid #000;text-align:left}
+  th.r,td.r{text-align:right}
+  th.c,td.c{text-align:center}
+  td{font-size:9pt;padding:4px 3px;border-bottom:1px dotted #ccc;vertical-align:top}
+  td .code{font-size:7.5pt;color:#666;display:block;font-family:'Courier New',monospace}
+  .sum-section{margin-top:4px}
+  .sum-row{display:flex;justify-content:space-between;padding:2px 0;font-size:9pt}
+  .sum-total{font-size:13pt;font-weight:800;border-top:1.5px solid #000;padding-top:3px;margin-top:2px}
+  .pay-row{display:flex;justify-content:space-between;font-size:9pt;margin-top:4px}
+  .extra-section{display:flex;justify-content:space-between;font-size:8pt;color:#555;margin-top:3px}
+  .policy{font-size:8pt;color:#333;margin-top:10px;border-top:1px dashed #999;padding-top:6px;line-height:1.7}
+  .policy-title{font-weight:700;margin-bottom:3px}
+  .footer{text-align:center;font-size:8pt;color:#555;margin-top:8px;border-top:1px dashed #999;padding-top:6px;line-height:1.7}
+  .footer-url{font-size:8pt;color:#333;font-weight:600}
+  @media print{body{padding:3mm 5mm}}
+</style>
+</head><body>
+<div class="logo-wrap">${logoSVG}</div>
+<div class="co-name">Delish Foods</div>
+<div class="co-addr">
+  921 ก.อ่อนนุช แขวงอ่อนนุช เขตสวนหลวง<br>
+  กรุงเทพมหานคร 10250<br>
+  โทร: 02 723 0969
+</div>
+<div class="divider-solid"></div>
+<div class="title">ใบเสร็จรับเงิน</div>
+<div class="divider"></div>
+<div class="info-grid">
+  <div><span class="info-label">สาขา: </span><b>${safeOrder.branch}</b></div>
+  <div><b>${safeOrder.id}</b></div>
+</div>
+<div class="info-grid">
+  <div><span class="info-label">แคชเชียร์: </span>${safeOrder.user||'PC'}</div>
+  <div>${thTime} วันที่ ${thDate}</div>
+</div>
+<div class="info-grid">
+  <div><span class="channel-badge">${safeOrder.channel}${safeOrder.orderRef?' #'+safeOrder.orderRef:''} ${safeOrder.branch}</span></div>
+</div>
+<div class="divider"></div>
+<table>
+  <thead>
+    <tr>
+      <th>สินค้า</th>
+      <th class="c">ชิ้น</th>
+      <th class="r">ราคา</th>
+      <th class="r">รวม</th>
+    </tr>
+  </thead>
+  <tbody>
+    ${safeOrder.items.map(i=>{
+      const unitPrice = i.qty > 0 ? (i.subtotal / i.qty) : i.price;
+      const origPrice = i.price;
+      const hasItemDisc = Math.abs(origPrice - unitPrice) > 0.01;
+      const isFree = i.isFree || i.subtotal === 0;
+      return `<tr>
+        <td><b>${i.id}</b><span class="code">${i.name}${isFree?' 🎁 แถม':hasItemDisc?` (ลดจาก ฿${origPrice.toFixed(2)})`:''}</span></td>
+        <td class="c">${i.qty}</td>
+        <td class="r">${isFree?'0.00':unitPrice.toFixed(2)}</td>
+        <td class="r">${isFree?'0.00':i.subtotal.toFixed(2)}</td>
+      </tr>`;
+    }).join('')}
+  </tbody>
+</table>
+<div class="divider"></div>
+<div class="sum-section">
+  <div class="sum-row"><span>รวม ชิ้น ${safeOrder.items.reduce((s,i)=>s+i.qty,0)}</span><span>ราคา ${safeOrder.subtotal.toFixed(2)}</span></div>
+  ${safeOrder.discAmt>0?`<div class="sum-row" style="color:#c00"><span>ส่วนลด ${discLbl}</span><span>${safeOrder.discAmt.toFixed(2)}</span></div>`:''}
+  <div class="sum-row sum-total"><span>รวมทั้งสิ้น</span><span>${safeOrder.total.toFixed(2)}</span></div>
+</div>
+<div class="divider"></div>
+<div class="pay-row">
+  <span>การชำระเงิน (${payLbl})</span><span>${safeOrder.total.toFixed(2)}</span>
+</div>
+<div class="pay-row"><span>ทอน</span><span>0.00</span></div>
+<div class="divider"></div>
+<div class="extra-section">
+  <span>ณ เวลา</span><span>${d.toLocaleDateString('th-TH')} ${d.toLocaleTimeString('th-TH')}</span>
+</div>
+<div class="policy">
+  <div class="policy-title">เงื่อนไขการเคลมสินค้า</div>
+  1.ผักสด และผลไม้ไม่เปลือก แจ้งเคลมสินค้าภายใน 24 ชั่วโมง<br>
+  2.ผักหัว , ผักและผลไม้ไม่เปลือกแข็ง แจ้งเคลมสินค้าภายใน 2 วัน<br><br>
+  *ไม่รับเคลมกรณี สินค้าเสียหายไม่เกิน 20%*<br>
+  *ในกรณีที่สินค้าเสียหายไม่เกิน 20% ต้องส่งสินค้าคืนมาที่สาขาในสภาพที่สมบูรณ์*
+</div>
+<div class="footer">
+  ขอบคุณที่ใช้บริการ<br>
+  Facebook: <b>Delish Foods - ผักและผลไม้สด</b><br>
+  <span class="footer-url">https://www.delishfoods.co.th/</span><br>
+  <span style="font-size:7.5pt">${d.toLocaleDateString('th-TH',{day:'numeric',month:'numeric',year:'2-digit'})} ${thTime} &nbsp;&nbsp; POS &nbsp;&nbsp; @delishkitchen_th</span>
+</div>
+<script>window.onload=()=>{ setTimeout(()=>window.print(),400); }<\/script>
+</body></html>`;
+
+  const w=window.open('','_blank','width=820,height=900');
+  if(!w){ toast('กรุณาอนุญาต popup'); return; }
+  w.document.write(html); w.document.close();
+}
+
+// ════════════════════════════════════════════
+// HISTORY
+// ════════════════════════════════════════════
+let histTab = 'active'; // 'active' | 'cancelled'
+
+function setHistTab(tab){
+  histTab = tab;
+  document.getElementById('htab-active').className = 'hist-tab-btn' + (tab==='active'?' active':'');
+  document.getElementById('htab-cancelled').className = 'hist-tab-btn ctab' + (tab==='cancelled'?' active':'');
+  renderHistory();
+}
+
+function renderHistory(){
+  const q=(document.getElementById('hist-srch')?.value||'').toLowerCase();
+  const bf=document.getElementById('hist-branch')?.value||'';
+  const cf=document.getElementById('hist-ch')?.value||'';
+
+  let f=orders;
+  // filter ตาม sub-tab ก่อน
+  if(histTab==='cancelled') f=f.filter(o=>o.status==='cancelled');
+  else f=f.filter(o=>o.status!=='cancelled');
+
+  if(bf) f=f.filter(o=>o.branch===bf);
+  if(cf) f=f.filter(o=>o.channel===cf);
+  if(q) f=f.filter(o=>
+    o.id.toLowerCase().includes(q)||(o.orderRef||'').toLowerCase().includes(q)||
+    o.total.toString().includes(q)||new Date(o.date).toLocaleDateString('th-TH').includes(q)
+  );
+
+  if(session?.role==='Supervisor' && histTab==='active'){
+    const tot=f.reduce((s,o)=>s+o.total,0);
+    const dsc=f.reduce((s,o)=>s+(o.discAmt||0),0);
+    document.getElementById('st-orders').textContent=f.length;
+    document.getElementById('st-total').textContent='฿'+tot.toLocaleString();
+    document.getElementById('st-disc').textContent='฿'+dsc.toLocaleString();
+    document.getElementById('st-avg').textContent=f.length?'฿'+Math.round(tot/f.length).toLocaleString():'-';
+  }
+
+  const grid=document.getElementById('hist-grid');
+  const empty=document.getElementById('hist-empty');
+  if(!f.length){ grid.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+
+  const cls={Grab:'ch-grab',Lineman:'ch-line',Cash:'ch-cash'};
+  grid.innerHTML=f.map(o=>{
+    const d=new Date(o.date);
+    const isCancelled = o.status==='cancelled';
+    return `<div class="hc ${isCancelled?'hc-cancelled':''}"
+      onclick="openHistOrd('${o.id}')"
+      oncontextmenu="showCtxMenu(event,'${o.id}');return false;">
+      <div class="hc-top">
+        <div>
+          <div class="hc-id">${o.id}</div>
+          <span class="ch-badge ${cls[o.channel]||''}">${o.channel}</span>
+          ${o.orderRef?` <span style="font-size:11px;color:var(--muted)">#${o.orderRef}</span>`:''}
+          ${isCancelled?'<span class="cancelled-badge">❌ ยกเลิกแล้ว</span>':''}
+        </div>
+        <div><div class="hc-time">${d.toLocaleDateString('th-TH',{month:'short',day:'numeric'})} ${d.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})}</div>
+        <div class="hc-branch">${o.branch}</div></div>
+      </div>
+      <div class="hc-amt" style="${isCancelled?'text-decoration:line-through;color:var(--muted)':''}">฿${o.total.toLocaleString()}</div>
+      ${o.discAmt>0?`<div class="hc-disc">ส่วนลด ฿${o.discAmt.toLocaleString()}</div>`:''}
+      <div class="hc-count">${o.items.length} รายการ · ${o.items.reduce((s,i)=>s+i.qty,0)} ชิ้น · ${({cash:'เงินสด',transfer:'โอน/QR'})[o.payMethod]}</div>
+    </div>`;
+  }).join('');
+}
+
+function openHistOrd(id){
+  const o=orders.find(x=>x.id===id); if(!o) return;
+  const sap=buildSAP(o);
+  const d=new Date(o.date);
+  const chCls={Grab:'ch-grab',Lineman:'ch-line',Cash:'ch-cash'}[o.channel];
+  const payLbl={cash:'เงินสด',transfer:'โอน / QR'}[o.payMethod];
+  const isCancelled = o.status==='cancelled';
+
+  document.getElementById('hist-detail-body').innerHTML=`
+    <div class="receipt">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px">
+        <span class="ch-badge ${chCls}">${o.channel}</span>
+        ${o.orderRef?`<b>#${o.orderRef}</b>`:''}
+        ${isCancelled?`<span class="cancelled-badge">❌ ยกเลิกแล้ว${o.cancelledAt?' · '+new Date(o.cancelledAt).toLocaleString('th-TH'):''}</span>`:''}
+        <span style="font-size:13px;color:var(--muted)">${o.id} · ${d.toLocaleString('th-TH')}</span>
+        <span style="font-size:13px;color:var(--muted)">สาขา${o.branch}</span>
+      </div>
+      <div style="${isCancelled?'opacity:.5':''}">
+        ${o.items.map(i=>`<div class="ri">
+          <div style="flex:1"><div class="ri-name">${i.name}</div><div class="ri-code">${i.id}</div></div>
+          <div class="ri-qty" style="margin:0 10px">×${i.qty}</div>
+          <div class="ri-sub">฿${i.subtotal.toLocaleString()}</div>
+        </div>`).join('')}
+      </div>
+      <div class="rec-line"></div>
+      ${o.discAmt>0?`<div class="rec-row"><span style="color:var(--muted)">ก่อนลด</span><span style="font-weight:600">฿${o.subtotal.toLocaleString()}</span></div>
+      <div class="rec-row"><span style="color:var(--orange)">ส่วนลด</span><span style="color:var(--orange);font-weight:700">-฿${o.discAmt.toLocaleString()}</span></div>`:''}
+      <div class="rec-row" style="font-size:17px;${isCancelled?'text-decoration:line-through;color:var(--muted)':''}">
+        <span style="font-weight:800">ยอดสุทธิ</span><span class="rec-total-num">฿${o.total.toLocaleString()}</span>
+      </div>
+      <div class="rec-row" style="margin-top:4px"><span style="color:var(--muted)">ชำระด้วย</span><span style="font-weight:700">${payLbl}</span></div>
+    </div>
+    ${isCancelled
+      ? `<div style="padding:12px;background:var(--red-l);border:1.5px solid #f5b5b0;border-radius:var(--r);font-size:14px;color:var(--red);font-weight:600;margin-top:12px;text-align:center">
+          ❌ ออเดอร์นี้ถูกยกเลิกแล้ว — ไม่สามารถดำเนินการต่อได้
+         </div>`
+      : sapBlock(sap, `${o.channel}${o.orderRef?' #'+o.orderRef:''}`)
+    }
+    <div class="print-wrap" style="margin-top:10px">
+      <button class="btn-print" onclick="printReceipt('${o.id}')">🖨️ พิมพ์ใบเสร็จ</button>
+      ${!isCancelled?`<button class="btn-cancel-order" onclick="openCancelModal('${o.id}')">❌ ยกเลิกออเดอร์</button>`:''}
+    </div>`;
+  document.getElementById('modal-hist').style.display='flex';
+}
+
+// ════════════════════════════════════════════
+// CANCEL ORDER
+// ════════════════════════════════════════════
+// ════════════════════════════════════════════
+// CONTEXT MENU (right-click on history card)
+// ════════════════════════════════════════════
+let ctxOrderId = null;
+
+function showCtxMenu(e, orderId){
+  ctxOrderId = orderId;
+  const o = orders.find(x=>x.id===orderId);
+  const isCancelled = o?.status==='cancelled';
+  const menu = document.getElementById('ctx-menu');
+  const cancelBtn = document.getElementById('ctx-cancel-btn');
+
+  // ซ่อนปุ่มยกเลิกถ้าออเดอร์ยกเลิกแล้ว
+  cancelBtn.style.display = isCancelled ? 'none' : 'flex';
+
+  // วาง menu ตำแหน่ง mouse
+  menu.style.display='block';
+  let x=e.clientX, y=e.clientY;
+  if(x+210>window.innerWidth) x=window.innerWidth-215;
+  if(y+160>window.innerHeight) y=window.innerHeight-165;
+  menu.style.left=x+'px';
+  menu.style.top=y+'px';
+}
+
+function hideCtxMenu(){
+  document.getElementById('ctx-menu').style.display='none';
+  ctxOrderId=null;
+}
+
+function ctxCopy(){
+  const o=orders.find(x=>x.id===ctxOrderId); if(!o) return;
+  hideCtxMenu();
+  // เปิด modal พร้อม SAP section
+  openHistOrd(o.id);
+}
+
+function ctxPrint(){
+  const id=ctxOrderId; hideCtxMenu();
+  printReceipt(id);
+}
+
+function ctxCancel(){
+  const id=ctxOrderId; hideCtxMenu();
+  openCancelModal(id);
+}
+
+// ปิด context menu เมื่อคลิกที่อื่น
+document.addEventListener('click', ()=>hideCtxMenu());
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') hideCtxMenu(); });
+
+function openCancelModal(orderId){
+  cancelTargetId = orderId;
+  document.getElementById('cancel-order-id').textContent = orderId;
+  document.getElementById('cancel-pw').value = '';
+  document.getElementById('cancel-err').style.display = 'none';
+  closeM('modal-hist');
+  document.getElementById('modal-cancel').style.display = 'flex';
+  setTimeout(()=>document.getElementById('cancel-pw').focus(), 100);
+}
+
+async function confirmCancel(){
+  const pw = document.getElementById('cancel-pw').value;
+  const errEl = document.getElementById('cancel-err');
+  if(pw !== PW['Supervisor']){ errEl.style.display='block'; return; }
+  errEl.style.display='none';
+
+  const o = orders.find(x=>x.id===cancelTargetId);
+  if(!o){ toast('ไม่พบออเดอร์'); return; }
+
+  closeM('modal-cancel');
+
+  // แสดง loading ขณะยกเลิก
+  showLoading('กำลังยกเลิกออเดอร์...', 30);
+
+  const cancelledAt = new Date().toISOString();
+  const cancelledBranch = session?.branch?.name || o.branch || '-';
+
+  // Mark cancelled in memory
+  o.status = 'cancelled';
+  o.cancelledAt = cancelledAt;
+  o.cancelledBranch = cancelledBranch;
+  o.cancelledBy = `Supervisor · สาขา${cancelledBranch}`;
+
+  setLoading('บันทึกการยกเลิก...', 60);
+
+  // Update localStorage
+  try {
+    const local = JSON.parse(localStorage.getItem('df_orders')||'[]');
+    const idx = local.findIndex(x=>x.id===cancelTargetId);
+    if(idx>=0){
+      local[idx].status='cancelled';
+      local[idx].cancelledAt=cancelledAt;
+      local[idx].cancelledBranch=cancelledBranch;
+      local[idx].cancelledBy=o.cancelledBy;
+    }
+    localStorage.setItem('df_orders', JSON.stringify(local));
+  } catch(e){}
+
+  // Update Sheet
+  try {
+    await fetch(SHEET_API_URL, {
+      method:'POST', redirect:'follow',
+      headers:{'Content-Type':'text/plain'},
+      body: JSON.stringify({
+        action: 'cancelOrder',
+        data: {
+          id: cancelTargetId,
+          cancelledAt,
+          cancelledBy: o.cancelledBy
+        }
+      })
+    });
+  } catch(e){ console.error('cancelOrder Sheet error:', e); }
+
+  setLoading('เสร็จสิ้น!', 100);
+  await new Promise(r=>setTimeout(r,400));
+  hideLoading();
+
+  toast(`✅ ยกเลิกออเดอร์ ${cancelTargetId} แล้ว`);
+  renderHistory();
+}
+
+// ════════════════════════════════════════════
+// ADMIN — Shared Storage
+// ════════════════════════════════════════════
+function renderAdmin(){
+  const q=(document.getElementById('adm-srch')?.value||'').toLowerCase();
+  const list=q?products.filter(p=>p.name.toLowerCase().includes(q)||p.id.toLowerCase().includes(q)):products;
+
+  document.getElementById('adm-tbody').innerHTML=list.slice(0,200).map(p=>`
+    <tr id="arow-${p.id}">
+      <td class="td-id">${p.id}</td>
+      <td style="max-width:200px">
+        <input style="width:100%;padding:4px 7px;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r3);font-family:var(--font);font-size:13px;outline:none" id="pn-${p.id}" value="${p.name.replace(/"/g,'&quot;')}">
+      </td>
+      <td>
+        <select class="uom-sel" id="ps-${p.id}">
+          ${PACKSIZES.map(x=>`<option${p.packsize===x?' selected':''}>${x}</option>`).join('')}
+        </select>
+      </td>
+      <td><input class="uom-qty" id="pq-${p.id}" value="${p.qty}" placeholder="-"></td>
+      <td>
+        <select class="uom-sel" id="pu-${p.id}">
+          ${['','g','kg','pc','ml','l'].map(x=>`<option${p.unit===x?' selected':''}>${x}</option>`).join('')}
+        </select>
+      </td>
+      <td class="td-price"><input class="price-inp2" id="pp-${p.id}" value="${p.price}" type="number" min="0" placeholder="ปลีก"></td>
+      <td class="td-price"><input class="price-inp2" id="pw-${p.id}" value="${p.priceWholesale||p.price}" type="number" min="0" placeholder="ส่ง"></td>
+      <td><button class="btn-save" onclick="saveProduct('${p.id}')">บันทึก</button></td>
+      <td><button onclick="deleteProduct('${p.id}')" style="padding:5px 10px;background:var(--red-l);border:1.5px solid #f5b5b0;border-radius:var(--r3);color:var(--red);font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer">ลบ</button></td>
+    </tr>`).join('');
+}
+
+async function saveProduct(id){
+  const p=products.find(x=>x.id===id); if(!p) return;
+  const nameEl=document.getElementById(`pn-${id}`);
+  if(nameEl&&nameEl.value.trim()) p.name=nameEl.value.trim();
+  p.packsize=document.getElementById(`ps-${id}`).value;
+  p.qty=document.getElementById(`pq-${id}`).value;
+  p.unit=document.getElementById(`pu-${id}`).value;
+  p.uom=(p.packsize+(p.qty?' '+p.qty+(p.unit||''):'')).trim();
+  const price=parseFloat(document.getElementById(`pp-${id}`).value);
+  const priceWs=parseFloat(document.getElementById(`pw-${id}`).value);
+  if(!isNaN(price)&&price>0) p.price=price;
+  if(!isNaN(priceWs)&&priceWs>0) p.priceWholesale=priceWs;
+  else p.priceWholesale=p.price; // fallback ราคาปลีก
+  await saveSKUToStorage(products);
+  setSyncStatus('ok');
+  document.getElementById('modal-refresh').style.display='flex';
+  renderProds();
+}
+
+async function saveAllProducts(){
+  products.forEach(p=>{
+    const nameEl=document.getElementById(`pn-${p.id}`);
+    const psEl=document.getElementById(`ps-${p.id}`);
+    const pqEl=document.getElementById(`pq-${p.id}`);
+    const puEl=document.getElementById(`pu-${p.id}`);
+    const ppEl=document.getElementById(`pp-${p.id}`);
+    const pwEl=document.getElementById(`pw-${p.id}`);
+    if(!psEl) return;
+    if(nameEl&&nameEl.value.trim()) p.name=nameEl.value.trim();
+    p.packsize=psEl.value; p.qty=pqEl.value; p.unit=puEl.value;
+    p.uom=(p.packsize+(p.qty?' '+p.qty+(p.unit||''):'')).trim();
+    const price=parseFloat(ppEl?.value);
+    const priceWs=parseFloat(pwEl?.value);
+    if(!isNaN(price)&&price>0) p.price=price;
+    if(!isNaN(priceWs)&&priceWs>0) p.priceWholesale=priceWs;
+    else p.priceWholesale=p.price;
+  });
+  setSyncStatus('saving');
+  await saveSKUToStorage(products);
+  setSyncStatus('ok');
+  document.getElementById('modal-refresh').style.display='flex';
+  renderProds();
+}
+
+function openAddProduct(){
+  document.getElementById('new-id').value='';
+  document.getElementById('new-name').value='';
+  document.getElementById('new-qty').value='';
+  document.getElementById('new-price').value='';
+  document.getElementById('new-price-ws').value='';
+  document.getElementById('add-err').style.display='none';
+  document.getElementById('add-err').textContent='กรุณากรอกข้อมูลให้ครบ';
+  document.getElementById('modal-add-product').style.display='flex';
+  setTimeout(()=>document.getElementById('new-id').focus(),100);
+}
+
+async function confirmAddProduct(){
+  const id=document.getElementById('new-id').value.trim().toUpperCase();
+  const name=document.getElementById('new-name').value.trim();
+  const price=parseFloat(document.getElementById('new-price').value)||0;
+  const priceWs=parseFloat(document.getElementById('new-price-ws').value)||price; // fallback ราคาปลีก
+  const ps=document.getElementById('new-ps').value;
+  const qty=document.getElementById('new-qty').value.trim();
+  const unit=document.getElementById('new-unit').value;
+  const errEl=document.getElementById('add-err');
+  if(!id||!name||price<=0){ errEl.style.display='block'; return; }
+  if(products.find(p=>p.id===id)){ errEl.textContent='รหัสสินค้านี้มีอยู่แล้ว'; errEl.style.display='block'; return; }
+  const uom=(ps+(qty?' '+qty+(unit||''):'')).trim();
+  products.push({id, name, price, priceWholesale: priceWs, uom, packsize:ps, qty, unit});
+  closeM('modal-add-product');
+  await saveSKUToStorage(products);
+  document.getElementById('modal-refresh').style.display='flex';
+  renderAdmin(); renderProds();
+  toast(`✅ เพิ่มสินค้า ${id} แล้ว`);
+}
+
+async function deleteProduct(id){
+  const p=products.find(x=>x.id===id);
+  if(!p||!confirm(`ยืนยันลบสินค้า "${p.name}" (${id})?`)) return;
+  products=products.filter(x=>x.id!==id);
+  await saveSKUToStorage(products);
+  document.getElementById('modal-refresh').style.display='flex';
+  renderAdmin(); renderProds();
+  toast(`🗑️ ลบ ${id} แล้ว`);
+}
+
+// ════════════════════════════════════════════
+// UTILS
+// ════════════════════════════════════════════
+function closeM(id){ document.getElementById(id).style.display='none'; }
+function toast(msg){
+  const t=document.createElement('div'); t.className='toast'; t.textContent=msg;
+  document.body.appendChild(t); setTimeout(()=>t.remove(),2800);
+}
+</script>
+</body>
+</html>
